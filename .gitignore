@@ -1,0 +1,6 @@
+3rdparty/googletest
+3rdparty/ios-cmake
+3rdparty/android*
+build/
+.idea/
+.vscode/
