@@ -14,7 +14,11 @@ Main goals of this framework are:
 
 The inter process component contains a robust mutex and condition variable implementation. For a project I needed to synchronize two processes and found a lot of wrong information online. This is a new implementation based on [a paper written by Andrew D. Birrell (Microsoft Research, 2003)](http://birrell.org/andrew/papers/ImplementingCVs.pdf). This paper explains perfectly what issues one needs to consider.
 
-Since a lot of this code depends on operating system features, different implementations for the supported platforms had to be added. The Windows implementation is based on the mentioned paper. The linux implementation is a wrapper around the pthread mutex and condition_variable. On OSX no implementation has been added yet. OSX does not support the required pthread extensions and I could not find a good alternative so far (recommendations are welcome!).
+Since a lot of this code depends on operating system features, different implementations for the supported platforms had to be added. The Windows implementation is based on the mentioned paper. The linux implementation is a wrapper around the pthread mutex and condition_variable.
+
+#### COMPUTE
+
+This component contains some experiments related to opencl. The current clcpp subfolder contains some headers which implement a simple approach to compile opencl code as C++. This approach only works with very simple kernels (e.g. no memory barries) but that should already be enough for a wide range of algorithms. Use the set_global_id function to set the global index and afterwards call the kernel function. The global index is stored in a thread local variable and the kernel functions can be called simultaneously from multiple threads. To automate the process of calling a kernel function, the opencl_kernel_executor combined with the fair_executor from the async component can be used. This automates the whole process of scheduling all work items using a thread pool.
 
 #### More to come ...
 

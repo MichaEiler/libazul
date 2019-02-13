@@ -4,7 +4,7 @@ set(BUILD_TESTS TRUE)
 set(SUPPORTS_IPC TRUE)
 
 function (set_global_compiler_options)
-    set (options "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -Wpedantic -Wformat=2")
+    set (options "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -Wpedantic -Wformat=2 -Werror")
 
     if (CMAKE_BUILD_TYPE MATCHES DEBUG)
         set(options "${options} -g -O0")
