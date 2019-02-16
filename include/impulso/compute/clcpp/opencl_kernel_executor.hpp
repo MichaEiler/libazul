@@ -13,6 +13,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <tuple>
 
 namespace impulso
 {
@@ -29,18 +30,17 @@ namespace impulso
                     
                 }
 
-                template <int TDimensions, typename std::enable_if<TDimensions == 1>::type* = nullptr>
-                std::future<void> execute(std::function<void()> && kernel, std::array<std::size_t, TDimensions> const& global_work_size, std::array<std::size_t, TDimensions> const& global_work_offset = { 0u })
+                std::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t> const& global_work_size, std::tuple<std::size_t> const& global_work_offset = { 0u })
                 {
                     auto task_results = std::make_shared<std::vector<std::future<void>>>();
 
-                    const auto work_items = global_work_size[0];
+                    const auto work_items = std::get<0>(global_work_size);
                     const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
 
                     for (std::size_t i = 0; i < work_items; i += work_items_per_task)
                     {
                         const auto work_items_to_process = std::min(work_items_per_task, work_items - i);
-                        const auto work_items_offset = global_work_offset[0] + i;
+                        const auto work_items_offset = std::get<0>(global_work_offset) + i;
                         
                         auto task = [kernel, work_items_offset, work_items_to_process]() {
                             for (std::size_t j = work_items_offset; j < work_items_offset + work_items_to_process; ++j)
@@ -55,22 +55,21 @@ namespace impulso
                     return wait_for(std::move(task_results));
                 }
 
-                template <int TDimensions, typename std::enable_if<TDimensions == 2>::type* = nullptr>
-                std::future<void> execute(std::function<void()> && kernel, std::array<std::size_t, TDimensions> const& global_work_size, std::array<std::size_t, TDimensions> const& global_work_offset = { 0u, 0u })
+                std::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t> const& global_work_offset = { 0u, 0u })
                 {
                     auto task_results = std::make_shared<std::vector<std::future<void>>>();
 
-                    const auto work_items  = global_work_size[0] * global_work_size[1];
+                    const auto work_items  = std::get<0>(global_work_size) * std::get<1>(global_work_size);
                     const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
 
                     for (std::size_t i = 0; i < work_items; i += work_items_per_task)
                     {
                         const auto work_item_count = std::min(work_items_per_task, work_items - i);
-                        auto task = [kernel, global_work_offset, work_item_count, size_x = global_work_size[0], work_item_start=i]() {
+                        auto task = [kernel, global_work_offset, work_item_count, size_x = std::get<0>(global_work_size), work_item_start=i]() {
                             for (std::size_t j = work_item_start; j < work_item_start + work_item_count; ++j)
                             {
-                                set_global_id(0, global_work_offset[0] + j % size_x);
-                                set_global_id(1, global_work_offset[1] + j / size_x);
+                                set_global_id(0, std::get<0>(global_work_offset) + j % size_x);
+                                set_global_id(1, std::get<1>(global_work_offset) + j / size_x);
                                 kernel();
                             }
                         };
@@ -80,12 +79,11 @@ namespace impulso
                     return wait_for(std::move(task_results));
                 }
 
-                template <int TDimensions, typename std::enable_if<TDimensions == 3>::type* = nullptr>
-                std::future<void> execute(std::function<void()> && kernel, std::array<std::size_t, TDimensions> const& global_work_size, std::array<std::size_t, TDimensions> const& global_work_offset = { 0u, 0u })
+                std::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_offset = { 0u, 0u, 0u })
                 {
                     auto task_results = std::make_shared<std::vector<std::future<void>>>();
 
-                    const auto work_items  = global_work_size[0] * global_work_size[1] * global_work_size[2];
+                    const auto work_items  = std::get<0>(global_work_size) * std::get<1>(global_work_size) * std::get<2>(global_work_size);
                     const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
 
                     for (std::size_t i = 0; i < work_items; i += work_items_per_task)
@@ -94,9 +92,9 @@ namespace impulso
                         auto task = [kernel, global_work_offset, global_work_size, work_item_count, work_item_start = i]() {
                             for (std::size_t j = work_item_start; j < work_item_start + work_item_count; ++j)
                             {
-                                set_global_id(2, global_work_offset[2] + j / (global_work_size[0] * global_work_size[1]));
-                                set_global_id(1, global_work_offset[1] + (j % (global_work_size[0] * global_work_size[1])) / global_work_size[0]);
-                                set_global_id(0, global_work_offset[0] + j % global_work_size[0]);
+                                set_global_id(2, std::get<2>(global_work_offset) + j / (std::get<0>(global_work_size) * std::get<1>(global_work_size)));
+                                set_global_id(1, std::get<1>(global_work_offset) + (j % (std::get<0>(global_work_size) * std::get<1>(global_work_size))) / std::get<0>(global_work_size));
+                                set_global_id(0, std::get<0>(global_work_offset) + j % std::get<0>(global_work_size));
                                 kernel();
                             }
                         };

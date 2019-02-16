@@ -23,7 +23,7 @@ TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsVal
         image[get_global_id(1) * width + get_global_id(0)]++;
     };
 
-    auto result = kernel_executor->execute<2>(kernel, { width, height });
+    auto result = kernel_executor->execute(kernel, { width, height });
     result.get();
 
     for (std::size_t i = 0; i < image.size(); ++i)
@@ -50,7 +50,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted
         result[get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute<1>(kernel, { 8u });
+    auto future = kernel_executor->execute(kernel, { 8u });
     future.wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
@@ -73,7 +73,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
         result[get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute<1>(kernel, { 7u }, { 3u });
+    auto future = kernel_executor->execute(kernel, { 7u }, { 3u });
     future.wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
@@ -96,7 +96,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecute
         result[get_global_id(1) * width + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute<2>(kernel, { 3u, 2u });
+    auto future = kernel_executor->execute(kernel, { 3u, 2u });
     future.wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
@@ -119,7 +119,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
         result[get_global_id(1) * width + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute<2>(kernel, { 2u, 1u }, { 1u, 2u });
+    auto future = kernel_executor->execute(kernel, { 2u, 1u }, { 1u, 2u });
     future.wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
@@ -155,7 +155,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecu
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute<3>(kernel, { 4u, 3u, 2u });
+    auto future = kernel_executor->execute(kernel, { 4u, 3u, 2u });
     future.wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
@@ -200,7 +200,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_offsetConsidered)
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute<3>(kernel, { 2u, 2u, 2u }, { 2u, 2u, 1u });
+    auto future = kernel_executor->execute(kernel, { 2u, 2u, 2u }, { 2u, 2u, 1u });
     future.wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
