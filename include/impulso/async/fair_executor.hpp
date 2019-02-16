@@ -48,12 +48,12 @@ namespace impulso
                 return static_cast<std::uint32_t>(threads_.size());
             }
 
-            template<typename TResult>
-            std::future<TResult> execute(std::function<TResult()> && func)
+            template<typename T, typename TResult=std::result_of_t<T()>, typename std::enable_if<!std::is_void<TResult>::value>::type* = nullptr>
+            std::future<TResult> execute(T && func)
             {
                 std::unique_lock<std::mutex> lock(executor_mutex_);
 
-                const auto new_task = std::make_shared<task_type<TResult>>(std::move(func));
+                const auto new_task = std::make_shared<task_type<TResult>>(std::function<TResult()>(func));
 
                 tasks_.emplace(new_task);
                 tasks_condition_.notify_one();
@@ -61,11 +61,12 @@ namespace impulso
                 return new_task->get_future();
             }
 
-            std::future<void> execute(std::function<void()> && func)
+            template<typename T, typename TResult=std::result_of_t<T()>, typename std::enable_if<std::is_void<TResult>::value>::type* = nullptr>
+            std::future<void> execute(T&& func)
             {
                 std::unique_lock<std::mutex> lock(executor_mutex_);
 
-                const auto new_task = std::make_shared<task_type<void>>(std::move(func));
+                const auto new_task = std::make_shared<task_type<void>>(std::function<void()>(func));
 
                 tasks_.emplace(new_task);
                 tasks_condition_.notify_one();

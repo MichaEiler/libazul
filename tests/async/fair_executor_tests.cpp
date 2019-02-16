@@ -12,7 +12,7 @@ TEST_F(fair_executor_fixture, execute_taskEnqueued_success)
 {
     impulso::async::fair_executor executor;
 
-    auto result = executor.execute<int>([](){ return 42; });
+    auto result = executor.execute([](){ return 42; });
     ASSERT_EQ(std::future_status::timeout, result.wait_for(std::chrono::milliseconds(10)));
 
     executor.add_threads(1);
@@ -39,7 +39,7 @@ TEST_F(fair_executor_fixture, execute_multipleTasksAndThreads_success)
 
     for (int i = 0; i < tasks_to_execute; ++i)
     {
-        auto result = executor.execute<int>([i](){ return i; });
+        auto result = executor.execute([i](){ return i; });
         results.emplace_back(std::move(result));
     }
 
