@@ -4,7 +4,7 @@ branches:
     - master
 image:
   - Visual Studio 2017
-clone_folder: c:\projects\source
+  - Ubuntu1804
 build_script:
 - cmd: >-
     C:\Python37-x64\python.exe 3rdparty/download.py
@@ -13,12 +13,22 @@ build_script:
 
     cd build
 
-    cmake -G"Visual Studio 15 2017 Win64" -DBDUILD_SHARED_LIBS=ON ..
+    cmake -G"Visual Studio 15 2017 Win64" -DBUILD_SHARED_LIBS=ON ..
 
     cmake --build . --config Release --target ALL_BUILD
+- sh: >-
+    python3 ./3rdparty/download.py
+
+    mkdir build
+    
+    cd build
+
+    cmake -G"Unix Makefiles" -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Relase ..
+
+    make -j2
 test_script:
 - cmd: >-
-    cd C:\projects\source\build
+    cd C:\projects\libimpulso\build
 
     tests\async\Release\tests_impulso_async.exe
 
@@ -27,3 +37,13 @@ test_script:
     tests\ipc\Release\tests_impulso_ipc.exe
 
     tests\utils\Release\tests_impulso_utils.exe
+- sh: >-
+    cd /home/appveyor/projects/libimpulso/build/
+
+    ./tests/async/tests_impulso_async
+
+    ./tests/compute/tests_impulso_compute
+
+    ./tests/ipc/tests_impulso_ipc
+
+    ./tests/utils/tests_impulso_utils
