@@ -1,5 +1,3 @@
-enable_language(ASM_NASM)
-
 set(SUPPORTS_IPC TRUE)
 set(BUILD_TESTS TRUE)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

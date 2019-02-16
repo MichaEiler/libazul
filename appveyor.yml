@@ -1,0 +1,29 @@
+version: 0.0.{build}
+branches:
+  only:
+    - master
+image:
+  - Visual Studio 2017
+clone_folder: c:\projects\source
+build_script:
+- cmd: >-
+    C:\Python37-x64\python.exe 3rdparty/download.py
+
+    md build
+
+    cd build
+
+    cmake -G"Visual Studio 15 2017 Win64" -DBDUILD_SHARED_LIBS=ON ..
+
+    cmake --build . --config Release --target ALL_BUILD
+test_script:
+- cmd: >-
+    cd C:\projects\source\build
+
+    tests\async\Release\tests_impulso_async.exe
+
+    tests\compute\Release\tests_impulso_compute.exe
+    
+    tests\ipc\Release\tests_impulso_ipc.exe
+
+    tests\utils\Release\tests_impulso_utils.exe

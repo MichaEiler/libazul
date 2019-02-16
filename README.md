@@ -1,5 +1,7 @@
 # libimpulso
 
+![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/MichaelE1000/libimpulso?branch=master&svg=true "AppVeyor Build Status")
+
 libimpulso is a collection of C++ framework components.
 
 Main goals of this framework are: 

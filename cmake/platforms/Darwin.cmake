@@ -1,5 +1,3 @@
-enable_language(ASM_NASM)
-
 set(BUILD_TESTS TRUE)
 set(SUPPORTS_IPC TRUE)
 
