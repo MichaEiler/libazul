@@ -17,7 +17,7 @@ TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsVal
     const std::size_t height = 1080;
     std::vector<int> image(width * height, 0);
 
-    const auto kernel = [&image]() {
+    const auto kernel = [&image, width]() {
         using namespace impulso::compute::clcpp;
         image[get_global_id(1) * width + get_global_id(0)]++;
     };
@@ -144,7 +144,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecu
 
     std::vector<int> result(expected_result.size(), 0);
 
-    const auto kernel = [&result]() {
+    const auto kernel = [&result, edge]() {
         using namespace impulso::compute::clcpp;
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };
@@ -188,7 +188,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_offsetConsidered)
 
     std::vector<int> result(expected_result.size(), 0);
 
-    const auto kernel = [&result]() {
+    const auto kernel = [&result, edge]() {
         using namespace impulso::compute::clcpp;
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };

@@ -3,7 +3,7 @@ branches:
   only:
     - master
 image:
-  - Visual Studio 2017
+#  - Visual Studio 2019
   - Ubuntu1804
 build_script:
 - cmd: >-
@@ -13,7 +13,7 @@ build_script:
 
     cd build
 
-    cmake -G"Visual Studio 15 2017 Win64" -DBUILD_SHARED_LIBS=OFF ..
+    cmake -G"Visual Studio 16 2019" -Ax64 -DBUILD_SHARED_LIBS=OFF ..
 
     cmake --build . --config Release --target ALL_BUILD
 - sh: >-

@@ -3,6 +3,7 @@
 #include <impulso/utils/disposer.hpp>
 #include <thread>
 #include <Windows.h>
+#include <stdexcept>
 
 namespace
 {

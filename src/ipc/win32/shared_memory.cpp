@@ -44,7 +44,7 @@ namespace
         const std::uint64_t size_ = 0;
 
     public:
-        explicit shared_memory(std::string const& name, std::uint64_t const size, const bool const is_owner)
+        explicit shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner)
             : size_(size), address_(create_shared_memory(name, size, is_owner, disposer_))
         {
         }
