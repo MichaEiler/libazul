@@ -163,10 +163,18 @@ namespace impulso
                 return static_cast<bool>(state_);
             }
 
-            void set_value(T const& value)
+            template <typename F, typename std::enable_if<std::is_same_v<F, T> && !std::is_void_v<F>>::type* = nullptr>
+            void set_value(F const& value)
             {
                 check();
                 state_->set(value);
+            }
+
+            template <typename F = void, typename std::enable_if<std::is_void_v<F>>::type* = nullptr>
+            void set_value()
+            {
+                check();
+                state_->set();
             }
 
             void set_exception(std::exception_ptr const& ex)
@@ -196,73 +204,6 @@ namespace impulso
             }
 
             std::shared_ptr<detail::future_state<T>> state_;
-        };
-
-        template<>
-        class promise<void> final
-        {
-        public:
-            explicit promise()
-                : state_(std::make_shared<detail::future_state<void>>())
-            {
-
-            }
-
-            ~promise() noexcept
-            {
-                try {
-                    if (state_)
-                    {
-                        state_->about_to_destroy_promise();
-                        state_.reset();
-                    }
-                } catch(...)
-                { }
-            }
-
-            promise(promise const&) = delete;
-            promise(promise&&) = default;
-            promise& operator=(promise const&) = delete;
-            promise& operator=(promise&&) = default;
-
-            bool valid() const noexcept
-            {
-                return static_cast<bool>(state_);
-            }
-
-            void set_value()
-            {
-                check();
-                state_->set();
-            }
-
-            void set_exception(std::exception_ptr const& ex)
-            {
-                check();
-                state_->set(ex);
-            }
-            
-            future<void> get_future() const
-            {
-                check();
-                return future<void>(state_);
-            }
-
-            std::size_t number_of_continuations() const
-            {
-                return state_->number_of_continuations();
-            }
-
-        private:
-            void check() const
-            {
-                if (!state_)
-                {
-                    throw std::logic_error("Calling operations on an uninitialized object.");
-                }
-            }
-
-            std::shared_ptr<detail::future_state<void>> state_;
         };
     }
 }
