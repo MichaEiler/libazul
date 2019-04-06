@@ -7,7 +7,7 @@ libimpulso is a collection of C++ framework components.
 Main goals of this framework are: 
 * Applying best practices to a small, manageable project
 * Implementing modern C++ features while keeping it as portable as possible
-* Target a modern C++ standard (currently C++14)
+* Target a modern C++ standard (currently C++17)
 * Supporting all important platforms: Windows (x86_64, x86), Linux (x86_64), OSX (x86_64), iOS (arm64), Android (arm64, arm)
 
 # Framework Components

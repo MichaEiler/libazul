@@ -1,7 +1,7 @@
 #include <chrono>
 #include <future>
 #include <gmock/gmock.h>
-#include <impulso/async/task.hpp>
+#include <impulso/async/detail/task.hpp>
 #include <stdexcept>
 #include <thread>
 
@@ -9,11 +9,44 @@ class task_fixture : public testing::Test
 {
 };
 
+TEST_F(task_fixture, wrapDependencies_twoInputFutures_resultSet)
+{
+    impulso::async::promise<int> promise;
+    auto future = promise.get_future();
+
+    impulso::async::promise<bool> promise2;
+    auto future2 = promise2.get_future();
+
+    auto final_future = impulso::async::detail::wrap_dependencies(future, future2);
+
+    ASSERT_FALSE(future.is_ready());
+    ASSERT_FALSE(future2.is_ready());
+    ASSERT_FALSE(final_future.is_ready());
+
+    promise.set_value(42);
+
+    ASSERT_TRUE(future.is_ready());
+    ASSERT_FALSE(future2.is_ready());
+    ASSERT_FALSE(final_future.is_ready());
+
+    promise2.set_value(true);
+
+    ASSERT_TRUE(future.is_ready());
+    ASSERT_TRUE(future2.is_ready());
+    ASSERT_TRUE(final_future.is_ready());
+}
+
+TEST_F(task_fixture, wrapDependencies_zeroInputFutures_resultImmediatelySet)
+{
+    auto future = impulso::async::detail::wrap_dependencies();
+    ASSERT_TRUE(future.is_ready());
+}
+
 TEST_F(task_fixture, executeTask_taskThrowsException_exceptionCorrectlyForwarded)
 {
     auto task_action = []() { throw std::invalid_argument(""); };
-    impulso::async::task_type<void> task(task_action);
-    std::future<void> future = task.get_future();
+    impulso::async::detail::task_type<void> task(task_action);
+    impulso::async::future<void> future = task.get_future();
 
     task();
 
@@ -22,12 +55,12 @@ TEST_F(task_fixture, executeTask_taskThrowsException_exceptionCorrectlyForwarded
 
 TEST_F(task_fixture, executeTask_taskDestroyedResultReady_noExceptionThrown)
 {
-    std::future<void> future;
+    impulso::async::future<void> future;
     
     {
         auto task_action = [](){};
-        impulso::async::task_type<void> task(task_action);
-        future = std::move(task.get_future());
+        impulso::async::detail::task_type<void> task(task_action);
+        future = task.get_future();
 
         task();
     }
@@ -37,12 +70,12 @@ TEST_F(task_fixture, executeTask_taskDestroyedResultReady_noExceptionThrown)
 
 TEST_F(task_fixture, executeTask_taskDestroyedExceptionCached_exceptionCorrectlyForwarded)
 {
-    std::future<void> future;
+    impulso::async::future<void> future;
 
     {
         auto task_action = [](){ throw std::invalid_argument(""); };
-        impulso::async::task_type<void> task(task_action);
-        future = std::move(task.get_future());
+        impulso::async::detail::task_type<void> task(task_action);
+        future = task.get_future();
 
         task();
     }
@@ -53,7 +86,7 @@ TEST_F(task_fixture, executeTask_taskDestroyedExceptionCached_exceptionCorrectly
 TEST_F(task_fixture, executeTask_taskProvidesReturnValue_futureReturnsResult)
 {
     auto task_action = [](){ return 1337; };
-    impulso::async::task_type<int> task(task_action);
+    impulso::async::detail::task_type<int> task(task_action);
     auto future = task.get_future();
     task();
 
@@ -64,7 +97,7 @@ TEST_F(task_fixture, getValue_taskInOtherThread_blocksUntilTaskProcessed)
 {
     bool result_available = false;
 
-    impulso::async::task_type<void> task([](){});
+    impulso::async::detail::task_type<void> task([](){});
     auto future = task.get_future();
 
     std::thread other_thread([&](){

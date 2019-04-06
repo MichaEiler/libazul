@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 project (impulso C CXX)
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 
 include(${CMAKE_SOURCE_DIR}/cmake/common.cmake)
 set_impulso_platform_file()
