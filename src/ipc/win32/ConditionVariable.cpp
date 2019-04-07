@@ -17,9 +17,9 @@ namespace
     {
     private:
         std::unordered_map<std::thread::id, HANDLE> _semaphores;
-        ::azul::ipc::shared_memory _threadQueueMemory;
-        azul::ipc::detail::queue<std::thread::id> _threadQueue;
-        ::azul::ipc::sync::robust_mutex _threadQueueMutex;
+        ::azul::ipc::SharedMemory _threadQueueMemory;
+        azul::ipc::detail::Queue<std::thread::id> _threadQueue;
+        ::azul::ipc::sync::RobustMutex _threadQueueMutex;
         std::string const _name;
 
         HANDLE GetSemaphore(std::thread::id const& _threadId)

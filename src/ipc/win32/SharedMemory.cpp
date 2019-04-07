@@ -29,7 +29,7 @@ namespace
 
             disposer.Set([=]() { CloseHandle(handle); });
 
-            auto address = MapViewOfFile(handle, FILE_MAP_ALL_ACCESS, 0, 0, static_cast<_sizeT>(size));
+            auto address = MapViewOfFile(handle, FILE_MAP_ALL_ACCESS, 0, 0, static_cast<SIZE_T>(size));
 
             if (address == nullptr)
             {
@@ -49,12 +49,12 @@ namespace
         {
         }
 
-        void* address() const
+        void* Address() const
         {
             return _address;
         }
 
-        std::uint64_t size() const
+	std::uint64_t Size() const
         {
             return _size;
         }
@@ -76,7 +76,7 @@ namespace
 {
 }
 
-void* ::azul::ipc::SharedMemory::address() const
+void* ::azul::ipc::SharedMemory::Address() const
 {
     if (!_impl)
     {
@@ -84,17 +84,17 @@ void* ::azul::ipc::SharedMemory::address() const
     }
 
     ::SharedMemory *const instance = reinterpret_cast<::SharedMemory*>(_impl.get());
-    return instance->address();
+    return instance->Address();
 }
 
-std::uint64_t azul::ipc::SharedMemory::size() const
+std::uint64_t azul::ipc::SharedMemory::Size() const
 {
-	if (!_impl)
-	{
-		throw std::runtime_error("Not initialized.");
-	}
+    if (!_impl)
+    {
+        throw std::runtime_error("Not initialized.");
+    }
 
     ::SharedMemory *const instance = reinterpret_cast<::SharedMemory*>(_impl.get());
-	return instance->size();
+    return instance->Size();
 }
 
