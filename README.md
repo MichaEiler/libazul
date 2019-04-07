@@ -18,6 +18,8 @@ The inter process component contains a robust mutex and condition variable imple
 
 Since a lot of this code depends on operating system features, different implementations for the supported platforms had to be added. The Windows implementation is based on the mentioned paper. The linux implementation is a wrapper around the pthread mutex and pthread condition variable. The OSX implementation is slightly more complicated but followes the basic algorithm of the windows variant.
 
+Note: Obviously this component is not availalbe on iOS/Android since it is not very useful there.
+
 #### COMPUTE
 
 This component contains some experiments related to opencl. The current clcpp subfolder contains some headers which implement a simple approach to compile opencl code as C++. This approach only works with very simple kernels (e.g. no memory barries) but that should already be enough for a wide range of algorithms. Use the set_global_id function to set the global index and afterwards call the kernel function. The global index is stored in a thread local variable and the kernel functions can be called simultaneously from multiple threads. To automate the process of calling a kernel function, the OpenClComputeExecutor combined with the StaticThreadPool from the async component can be used. This automates the whole process of scheduling all work items manually.
@@ -48,6 +50,9 @@ A library providing components for async programming. Currently contains a futur
     brew install gcc
     brew upgrade cmake
 
+    # optional, in case you get an error message about the command line tools being selected
+    sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
 #### Windows
 
     python 3rdparty/download.py
@@ -75,8 +80,8 @@ A library providing components for async programming. Currently contains a futur
 #### iOS (on OSX)
 
     mkdir build_ios && cd build_ios
-    
-    make -j8
+    cmake -GXcode -DBUILD_SHARED_LIBS=OFF .. -DCMAKE_TOOLCHAIN_FILE=`pwd`/../3rdparty/ios-cmake/ios.toolchain.cmake -DPLATFORM=OS64 -DENABLE_VISIBILITY=1 -DDISABLE_TESTS=ON
+    xcodebuild -project azul.xcodeproj build -configuration Release
 
 #### Windows
 
