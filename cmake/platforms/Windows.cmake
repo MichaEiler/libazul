@@ -1,5 +1,4 @@
 set(SUPPORTS_IPC TRUE)
-set(BUILD_TESTS TRUE)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 function (set_global_compiler_options)

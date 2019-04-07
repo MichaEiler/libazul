@@ -1,4 +1,3 @@
-set(BUILD_TESTS TRUE)
 set(SUPPORTS_IPC TRUE)
 
 function (set_global_compiler_options)

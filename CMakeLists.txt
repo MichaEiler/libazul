@@ -12,7 +12,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/src/async)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/compute)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/ipc/)
 
-if (BUILD_TESTS AND NOT DISABLE_TESTS)
+if (NOT DISABLE_TESTS)
     add_subdirectory(${CMAKE_SOURCE_DIR}/3rdparty/googletest)
     add_subdirectory(${CMAKE_SOURCE_DIR}/tests/async/)
     add_subdirectory(${CMAKE_SOURCE_DIR}/tests/compute/)
