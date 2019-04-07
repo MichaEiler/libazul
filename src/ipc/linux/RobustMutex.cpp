@@ -1,6 +1,6 @@
-#include "azul/ipc/sync/robust_mutex.hpp"
+#include "azul/ipc/sync/RobustMutex.hpp"
 
-#include <linux/robust_mutex.hpp>
+#include <linux/RobustMutex.hpp>
 
 azul::ipc::sync::RobustMutex::RobustMutex(std::string const& name, bool const isOwner)
     : _impl(std::make_unique<::RobustMutex>(name, isOwner))

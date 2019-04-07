@@ -1,6 +1,6 @@
-#include "azul/ipc/sync/robust_mutex.hpp"
+#include "azul/ipc/sync/RobustMutex.hpp"
 
-#include <azul/utils/disposer.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <thread>
 #include <Windows.h>
 #include <stdexcept>

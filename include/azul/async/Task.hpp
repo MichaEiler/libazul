@@ -1,8 +1,8 @@
 #pragma once
 
 #include <functional>
-#include <azul/async/future.hpp>
-#include <azul/utils/disposer.hpp>
+#include <azul/async/Future.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <memory>
 #include <stdexcept>
 

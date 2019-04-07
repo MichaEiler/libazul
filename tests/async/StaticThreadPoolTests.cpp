@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include <azul/async/static_thread_pool.hpp>
+#include <azul/async/StaticThreadPool.hpp>
 #include <thread>
 
 class StaticThreadPoolTestFixture : public testing::Test

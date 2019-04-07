@@ -1,7 +1,7 @@
 #include <atomic>
 #include <chrono>
 #include <gmock/gmock.h>
-#include <azul/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/sync/RobustMutex.hpp>
 #include <iostream>
 #include <memory>
 #include <thread>

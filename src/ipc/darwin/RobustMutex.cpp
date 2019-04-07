@@ -1,11 +1,11 @@
-#include "azul/ipc/sync/robust_mutex.hpp"
+#include "azul/ipc/sync/RobustMutex.hpp"
 
 #include <cerrno>
 #include <cstdio>
-#include "exceptions.hpp"
+#include "Exceptions.hpp"
 #include <fstream>
-#include <azul/ipc/shared_memory.hpp>
-#include <azul/utils/disposer.hpp>
+#include <azul/ipc/SharedMemory.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <memory>
 #include <pthread.h>
 #include <string>

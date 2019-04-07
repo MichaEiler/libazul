@@ -1,14 +1,16 @@
-#include "azul/ipc/shared_memory.hpp"
+#include "azul/ipc/SharedMemory.hpp"
 
 #include <cerrno>
 #include <fcntl.h>
-#include <azul/utils/disposer.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <stdexcept>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "Exceptions.hpp"
+#include "Hash.hpp"
 // http://man7.org/linux/man-pages/man7/shm_overview.7.html
 
 namespace
@@ -16,19 +18,34 @@ namespace
     class SharedMemory final
     {
     private:
-        static int CreateSharedMemory(bool const isOwner, std::string const& name, azul::utils::Disposer& disposer)
+        static int CreateSharedMemory(bool const isOwner, std::string const& full_name, azul::utils::Disposer& disposer)
         {
-            int const flags(isOwner ? (O_RDWR | O_CREAT | O_EXCL) : (O_RDWR));
+            // maximum name length on darwin is 31 bytes, base64 encoded sha1 hash is unique enough and stays within these limits
+            const auto hashed_name = azul::ipc::detail::sha1_hash(full_name);
+            const auto encoded_name = azul::ipc::detail::base64_encode(hashed_name);
+            const auto name = "/" + encoded_name;
 
-            int fd = shm_open(name.c_str(), flags, 0640);
+            if (isOwner)
+            {
+                // https://stackoverflow.com/questions/25502229/ftruncate-not-working-on-posix-shared-memory-in-mac-os-x
+                shm_unlink(name.c_str());
+            }
+
+            int const flags(isOwner ? (O_RDWR | O_CREAT /*| O_EXCL*/) : (O_RDWR));
+            
+            int fd = shm_open(name.c_str(), flags, 0644/*S_IRUSR | S_IWUSR*/);
+            if (fd < 0 && errno == ENOENT)
+            {
+                throw azul::ipc::detail::resource_missing_error();
+            }
+
             if (fd < 0 && errno == EEXIST)
             {
                 if (shm_unlink(name.c_str()) != 0)
                 {
-                    throw std::runtime_error("shm_unlink of previously generated shared memory failed, error: " +
-                                                std::to_string(errno));
+                    throw std::runtime_error("shm_unlink of previously generated shared memory failed, error: " + std::to_string(errno));
                 }
-                fd = shm_open(name.c_str(), flags, 0640);
+                fd = shm_open(name.c_str(), flags, 0644/*S_IRUSR | S_IWUSR*/);
             }
 
             if (fd < 0)
@@ -50,7 +67,8 @@ namespace
 
         static void* AllocateSharedMemory(int const fd, std::uint64_t const size, bool const isOwner, azul::utils::Disposer& disposer)
         {
-            if (isOwner && ftruncate(fd, size) != 0)
+            struct stat mapstat;
+            if (isOwner && fstat(fd, &mapstat) != -1 && mapstat.st_size == 0 && ftruncate(fd, size) != 0)
             {
                 throw std::runtime_error("ftruncate failed, error: " + std::to_string(errno));
             }
@@ -68,18 +86,18 @@ namespace
             return address;
         }
 
-        azul::utils::Disposer _fddisposer_;
+        azul::utils::Disposer _fdDisposer;
         const int _fd = 0;
 
-        azul::utils::Disposer allocation_disposer_;
+        azul::utils::Disposer _allocationDisposer;
         void* const _address = nullptr;
 
         const std::uint64_t _size = 0;
 
     public:
         explicit SharedMemory(std::string const& name, std::uint64_t const size, bool const isOwner)
-            : _fd(CreateSharedMemory(isOwner, name, _fddisposer_)),
-              _address(AllocateSharedMemory(_fd, size, isOwner, allocation_disposer_)),
+            : _fd(CreateSharedMemory(isOwner, name, _fdDisposer)),
+              _address(AllocateSharedMemory(_fd, size, isOwner, _allocationDisposer)),
               _size(size)
         {
         }

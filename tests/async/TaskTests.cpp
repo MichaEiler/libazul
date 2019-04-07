@@ -1,7 +1,7 @@
 #include <chrono>
 #include <future>
 #include <gmock/gmock.h>
-#include <azul/async/task.hpp>
+#include <azul/async/Task.hpp>
 #include <stdexcept>
 #include <thread>
 

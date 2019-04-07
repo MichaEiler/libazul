@@ -6,8 +6,8 @@
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
-#include <azul/async/static_thread_pool.hpp>
-#include <azul/compute/clcpp/opencl.hpp>
+#include <azul/async/StaticThreadPool.hpp>
+#include <azul/compute/clcpp/OpenCl.hpp>
 #include <memory>
 #include <mutex>
 #include <queue>

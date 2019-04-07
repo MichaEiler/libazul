@@ -2,7 +2,7 @@
 
 #include <chrono>
 #include <condition_variable>
-#include <azul/async/detail/future_state.hpp>
+#include <azul/async/detail/FutureState.hpp>
 #include <memory>
 #include <mutex>
 #include <stdexcept>

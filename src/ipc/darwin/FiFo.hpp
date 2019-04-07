@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <fcntl.h>
-#include <azul/utils/disposer.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <poll.h>
 #include <stdlib.h>
 #include <stdio.h>

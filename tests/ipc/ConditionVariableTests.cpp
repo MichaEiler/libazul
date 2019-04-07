@@ -1,8 +1,8 @@
 #include <atomic>
 #include <chrono>
 #include <gmock/gmock.h>
-#include <azul/ipc/sync/condition_variable.hpp>
-#include <azul/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/sync/ConditionVariable.hpp>
+#include <azul/ipc/sync/RobustMutex.hpp>
 #include <memory>
 #include <thread>
 

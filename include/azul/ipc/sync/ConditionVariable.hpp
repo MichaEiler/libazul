@@ -2,7 +2,7 @@
 
 #include <chrono>
 #include <condition_variable>
-#include <azul/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/sync/RobustMutex.hpp>
 #include <memory>
 #include <mutex>
 #include <string>

@@ -1,8 +1,8 @@
-#include "azul/ipc/sync/condition_variable.hpp"
+#include "azul/ipc/sync/ConditionVariable.hpp"
 
-#include <queue.hpp>
-#include <azul/ipc/sync/robust_mutex.hpp>
-#include <azul/ipc/shared_memory.hpp>
+#include <Queue.hpp>
+#include <azul/ipc/sync/RobustMutex.hpp>
+#include <azul/ipc/SharedMemory.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <thread>

@@ -1,10 +1,10 @@
 #include <gmock/gmock.h>
 
-#include <azul/compute/clcpp/opencl_kernel_pre.hpp>
+#include <azul/compute/clcpp/OpenClKernelPre.hpp>
 #include "kernels/math_builtins.cl"
 #include "kernels/vec_add.cl"
 #include "kernels/vec_types.cl"
-#include <azul/compute/clcpp/opencl_kernel_post.hpp>
+#include <azul/compute/clcpp/OpenClKernelPost.hpp>
 
 
 

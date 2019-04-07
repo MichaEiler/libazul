@@ -2,9 +2,9 @@
 
 #include <condition_variable>
 #include <cstdint>
-#include <azul/async/future.hpp>
-#include <azul/async/task.hpp>
-#include <azul/utils/disposer.hpp>
+#include <azul/async/Future.hpp>
+#include <azul/async/Task.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <list>
 #include <memory>
 #include <mutex>

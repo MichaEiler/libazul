@@ -1,19 +1,19 @@
-#include "azul/ipc/sync/condition_variable.hpp"
+#include "azul/ipc/sync/ConditionVariable.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
-#include <azul/ipc/sync/robust_mutex.hpp>
-#include <azul/ipc/shared_memory.hpp>
-#include <azul/utils/disposer.hpp>
+#include <azul/ipc/sync/RobustMutex.hpp>
+#include <azul/ipc/SharedMemory.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <memory>
 #include <mutex>
-#include <queue.hpp>
+#include <Queue.hpp>
 #include <semaphore.h>
 #include <sstream>
 #include <string>
 #include <thread>
 
-#include "fifo.hpp"
+#include "FiFo.hpp"
 
 // https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/mkfifo.2.html
 // https://apple.stackexchange.com/questions/261288/why-max-inode-count-became-232-1-on-my-hdd-after-update-to-os-x-10-12-sierra

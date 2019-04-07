@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include <azul/async/future.hpp>
+#include <azul/async/Future.hpp>
 #include <stdexcept>
 #include <thread>
 

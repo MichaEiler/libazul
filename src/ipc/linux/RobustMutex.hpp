@@ -6,9 +6,9 @@
 // http://pubs.opengroup.org/onlinepubs/009604499/functions/pthread_mutexattr_getpshared.html
 // https://linux.die.net/man/3/pthread_mutex_trylock
 
-#include <azul/ipc/shared_memory.hpp>
-#include <azul/ipc/sync/condition_variable.hpp>
-#include <azul/utils/disposer.hpp>
+#include <azul/ipc/SharedMemory.hpp>
+#include <azul/ipc/sync/ConditionVariable.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <pthread.h>
 #include <string>
 

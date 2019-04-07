@@ -1,4 +1,4 @@
-#include <../../src/ipc/queue.hpp>
+#include <../../src/ipc/Queue.hpp>
 #include <gmock/gmock.h>
 #include <memory>
 #include <vector>

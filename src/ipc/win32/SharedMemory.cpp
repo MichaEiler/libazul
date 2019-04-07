@@ -1,6 +1,6 @@
-#include "azul/ipc/shared_memory.hpp"
+#include "azul/ipc/SharedMemory.hpp"
 
-#include <azul/utils/disposer.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <Windows.h>
 #include <stdexcept>
 

@@ -1,14 +1,14 @@
 #include <gmock/gmock.h>
-#include <azul/async/static_thread_pool.hpp>
-#include <azul/compute/clcpp/opencl_kernel_executor.hpp>
-#include <azul/compute/clcpp/opencl.hpp>
+#include <azul/async/StaticThreadPool.hpp>
+#include <azul/compute/clcpp/OpenClComputeExecutor.hpp>
+#include <azul/compute/clcpp/OpenCl.hpp>
 #include <iostream>
 
-class kernel_executor_fixture : public testing::Test
+class OpenClComputExecutorTestFixture : public testing::Test
 {
 };
 
-TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsValid)
+TEST_F(OpenClComputExecutorTestFixture, KernelExecutor_WorkItemCountLarge_KernelCallsValid)
 {
     const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
     const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);
@@ -35,7 +35,7 @@ TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsVal
     }
 }
 
-TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted)
+TEST_F(OpenClComputExecutorTestFixture, Execute_WorkItemsWithOneDim_AllWorkItemsExecuted)
 {
     const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
     const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);
@@ -57,7 +57,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted
     }
 }
 
-TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
+TEST_F(OpenClComputExecutorTestFixture, Execute_WorkItemsWithOneDim_OffsetConsidered)
 {
     const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
     const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);
@@ -79,7 +79,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
     }
 }
 
-TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecuted)
+TEST_F(OpenClComputExecutorTestFixture, Execute_WorkItemsWithTwoDims_AllWorkItemsExecuted)
 {
     const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
     const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   
@@ -101,7 +101,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecute
     }
 }
 
-TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
+TEST_F(OpenClComputExecutorTestFixture, Execute_WorkItemsWithTwoDims_OffsetConsidered)
 {
     const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
     const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   
@@ -123,7 +123,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
     }
 }
 
-TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecuted)
+TEST_F(OpenClComputExecutorTestFixture, Execute_WorkItemsWithThreeDims_AllWorkItemsExecuted)
 {
     const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
     const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   
@@ -158,7 +158,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecu
     }
 }
 
-TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_offsetConsidered)
+TEST_F(OpenClComputExecutorTestFixture, Execute_WorkItemsWithThreeDims_OffsetConsidered)
 {
     const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
     const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   

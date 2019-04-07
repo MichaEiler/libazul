@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include <azul/compute/clcpp/opencl_vector.hpp>
+#include <azul/compute/clcpp/OpenClVector.hpp>
 
 using int4 = azul::compute::clcpp::Vec4<std::int32_t>;
 

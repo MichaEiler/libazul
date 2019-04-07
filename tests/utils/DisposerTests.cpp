@@ -1,4 +1,4 @@
-#include "azul/utils/disposer.hpp"
+#include "azul/utils/Disposer.hpp"
 #include <gmock/gmock.h>
 
 class DisposerTestFixture : public testing::Test

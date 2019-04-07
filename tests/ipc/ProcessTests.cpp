@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <gmock/gmock.h>
 #include <iostream>
-#include <azul/ipc/sync/condition_variable.hpp>
-#include <azul/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/sync/ConditionVariable.hpp>
+#include <azul/ipc/sync/RobustMutex.hpp>
 #include <mutex>
 #include <thread>
 

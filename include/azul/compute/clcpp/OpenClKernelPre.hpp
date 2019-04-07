@@ -1,8 +1,8 @@
 #ifndef __OPENCL_HEADER_INCLUDES
 #define __OPENCL_HEADER_INCLUDES
 
-#include "opencl.hpp"
-#include "opencl_vector.hpp"
+#include "OpenCl.hpp"
+#include "OpenClVector.hpp"
 
 #include <cmath>
 #include <limits>
