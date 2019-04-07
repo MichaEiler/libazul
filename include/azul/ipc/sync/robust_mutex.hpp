@@ -9,28 +9,31 @@ namespace azul
     {
         namespace sync
         {
-            class condition_variable;
+            class ConditionVariable;
 
-            class robust_mutex final
+            class RobustMutex final
             {
             public:
-                explicit robust_mutex(std::string const& name, bool const is_owner);
-                robust_mutex();
-                ~robust_mutex();
+                explicit RobustMutex(std::string const& name, bool const isOwner);
+                RobustMutex();
+                ~RobustMutex();
+
+                // lock, try_lock, unlock functions must use these names
+                // so that one can use the mutex with std::unique_lock and std::lock_guard
 
                 void lock();
                 bool try_lock();
                 void unlock();
 
-                robust_mutex(robust_mutex const&) = delete;
-                robust_mutex& operator=(robust_mutex const&) = delete;
-                robust_mutex(robust_mutex &&) = default;
-                robust_mutex& operator=(robust_mutex &&) = default;
+                RobustMutex(RobustMutex const&) = delete;
+                RobustMutex& operator=(RobustMutex const&) = delete;
+                RobustMutex(RobustMutex &&) = default;
+                RobustMutex& operator=(RobustMutex &&) = default;
 
             private:
-                friend class condition_variable;
+                friend class ConditionVariable;
 
-                std::shared_ptr<void> impl_;
+                std::shared_ptr<void> _impl;
             };
         }
     }

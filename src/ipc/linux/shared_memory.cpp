@@ -13,12 +13,12 @@
 
 namespace
 {
-    class shared_memory final
+    class SharedMemory final
     {
     private:
-        static int create_shared_memory(bool const is_owner, std::string const& name, azul::utils::disposer& disposer)
+        static int CreateSharedMemory(bool const isOwner, std::string const& name, azul::utils::Disposer& disposer)
         {
-            int const flags(is_owner ? (O_RDWR | O_CREAT | O_EXCL) : (O_RDWR));
+            int const flags(isOwner ? (O_RDWR | O_CREAT | O_EXCL) : (O_RDWR));
 
             int fd = shm_open(name.c_str(), flags, 0640);
             if (fd < 0 && errno == EEXIST)
@@ -36,10 +36,10 @@ namespace
                 throw std::runtime_error("shm_open failed, error: " + std::to_string(errno));
             }
 
-            disposer.set([=]() {
+            disposer.Set([=]() {
                 close(fd);
 
-                if (is_owner)
+                if (isOwner)
                 {
                     shm_unlink(name.c_str());
                 }
@@ -48,9 +48,9 @@ namespace
             return fd;
         }
 
-        static void* allocate_shared_memory(int const fd, std::uint64_t const size, bool const is_owner, azul::utils::disposer& disposer)
+        static void* AllocateSharedMemory(int const fd, std::uint64_t const size, bool const isOwner, azul::utils::Disposer& disposer)
         {
-            if (is_owner && ftruncate(fd, size) != 0)
+            if (isOwner && ftruncate(fd, size) != 0)
             {
                 throw std::runtime_error("ftruncate failed, error: " + std::to_string(errno));
             }
@@ -61,74 +61,74 @@ namespace
                 throw std::runtime_error("mmap failed, error: " + std::to_string(errno));
             }
 
-            disposer.set([=]() {
+            disposer.Set([=]() {
                 munmap(address, size);
             });
 
             return address;
         }
 
-        azul::utils::disposer fd_disposer_;
-        const int fd_ = 0;
+        azul::utils::Disposer _fddisposer_;
+        const int _fd = 0;
 
-        azul::utils::disposer allocation_disposer_;
-        void* const address_ = nullptr;
+        azul::utils::Disposer allocation_disposer_;
+        void* const _address = nullptr;
 
-        const std::uint64_t size_ = 0;
+        const std::uint64_t _size = 0;
 
     public:
-        explicit shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner)
-            : fd_(create_shared_memory(is_owner, name, fd_disposer_)),
-              address_(allocate_shared_memory(fd_, size, is_owner, allocation_disposer_)),
-              size_(size)
+        explicit SharedMemory(std::string const& name, std::uint64_t const size, bool const isOwner)
+            : _fd(CreateSharedMemory(isOwner, name, _fddisposer_)),
+              _address(AllocateSharedMemory(_fd, size, isOwner, allocation_disposer_)),
+              _size(size)
         {
         }
 
-        void* address() const
+        void* Address() const
         {
-            return address_;
+            return _address;
         }
 
-        std::uint64_t size() const
+        std::uint64_t Size() const
         {
-            return size_;
+            return _size;
         }
     };
 }
 
 // -----------------------------------------------------------------------------------------------------
 
-azul::ipc::shared_memory::shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner)
-    : impl_(std::make_unique<::shared_memory>(name, size, is_owner))
+azul::ipc::SharedMemory::SharedMemory(std::string const& name, std::uint64_t const size, bool const isOwner)
+    : _impl(std::make_unique<::SharedMemory>(name, size, isOwner))
 {
 }
 
-azul::ipc::shared_memory::shared_memory() : impl_(nullptr)
+azul::ipc::SharedMemory::SharedMemory() : _impl(nullptr)
 {
 }
 
-azul::ipc::shared_memory::~shared_memory()
+azul::ipc::SharedMemory::~SharedMemory()
 {
 }
 
-void* azul::ipc::shared_memory::address() const
+void* azul::ipc::SharedMemory::Address() const
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::shared_memory *const instance = reinterpret_cast<::shared_memory*>(impl_.get());
-    return instance->address();
+    ::SharedMemory *const instance = reinterpret_cast<::SharedMemory*>(_impl.get());
+    return instance->Address();
 }
 
-std::uint64_t azul::ipc::shared_memory::size() const
+std::uint64_t azul::ipc::SharedMemory::Size() const
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::shared_memory *const instance = reinterpret_cast<::shared_memory*>(impl_.get());
-    return instance->size();
+    ::SharedMemory *const instance = reinterpret_cast<::SharedMemory*>(_impl.get());
+    return instance->Size();
 }

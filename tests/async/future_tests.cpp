@@ -3,105 +3,105 @@
 #include <stdexcept>
 #include <thread>
 
-class future_fixture : public testing::Test
+class FutureTestFixture : public testing::Test
 {
 };
 
-TEST_F(future_fixture, get_promiseBroken_throwsFutureError)
+TEST_F(FutureTestFixture, Get_PromiseBroken_ThrowsFutureError)
 {
-    azul::async::future<int> future;
+    azul::async::Future<int> future;
     {
-        azul::async::promise<int> promise;
-        future = promise.get_future();
+        azul::async::Promise<int> promise;
+        future = promise.GetFuture();
     }
 
-    ASSERT_THROW(future.get(), azul::async::future_error);
+    ASSERT_THROW(future.Get(), azul::async::FutureError);
 }
 
-TEST_F(future_fixture, get_resultSet_returns)
+TEST_F(FutureTestFixture, Get_ResultSet_Returns)
 {
-    const int expected_result = 42;
+    const int expectedResult = 42;
 
-    azul::async::future<int> future;
+    azul::async::Future<int> future;
     {
-        azul::async::promise<int> promise;
-        future = promise.get_future();
-        promise.set_value(expected_result);
+        azul::async::Promise<int> promise;
+        future = promise.GetFuture();
+        promise.SetValue(expectedResult);
     }
 
-    ASSERT_EQ(expected_result, future.get());
+    ASSERT_EQ(expectedResult, future.Get());
 }
 
-TEST_F(future_fixture, get_storesException_rethrowsException)
+TEST_F(FutureTestFixture, Get_StoresException_RethrowsException)
 {
-    azul::async::future<int> future;
+    azul::async::Future<int> future;
     {
-        azul::async::promise<int> promise;
-        future = promise.get_future();
+        azul::async::Promise<int> promise;
+        future = promise.GetFuture();
 
         try
         {
             throw std::runtime_error("Some random exception.");
         } catch(const std::runtime_error&)
         {
-            promise.set_exception(std::current_exception());
+            promise.SetException(std::current_exception());
         }
     }
 
-    ASSERT_THROW(future.get(), std::runtime_error);
+    ASSERT_THROW(future.Get(), std::runtime_error);
 }
 
 
-TEST_F(future_fixture, get_storesException_canRethrowMultipleTimes)
+TEST_F(FutureTestFixture, Get_StoresException_CanRethrowMultipleTimes)
 {
-    azul::async::future<int> future;
+    azul::async::Future<int> future;
     {
-        azul::async::promise<int> promise;
-        future = promise.get_future();
+        azul::async::Promise<int> promise;
+        future = promise.GetFuture();
 
         try
         {
             throw std::runtime_error("Some random exception.");
         } catch(const std::runtime_error&)
         {
-            promise.set_exception(std::current_exception());
+            promise.SetException(std::current_exception());
         }
     }
 
-    ASSERT_THROW(future.get(), std::runtime_error);
-    ASSERT_THROW(future.get(), std::runtime_error);
-    ASSERT_THROW(future.get(), std::runtime_error);
+    ASSERT_THROW(future.Get(), std::runtime_error);
+    ASSERT_THROW(future.Get(), std::runtime_error);
+    ASSERT_THROW(future.Get(), std::runtime_error);
 }
 
-TEST_F(future_fixture, get_futureWithVoidTemplateParam_resultTypeIsVoid)
+TEST_F(FutureTestFixture, Get_FutureWithVoidTemplateParam_ResultTypeIsVoid)
 {
-    azul::async::promise<void> promise;
-    auto future = promise.get_future();
-    promise.set_value();
+    azul::async::Promise<void> promise;
+    auto future = promise.GetFuture();
+    promise.SetValue();
 
-    ASSERT_NO_THROW(future.get());
-    ASSERT_TRUE(std::is_void_v<decltype(future.get())>);
+    ASSERT_NO_THROW(future.Get());
+    ASSERT_TRUE(std::is_void_v<decltype(future.Get())>);
 }
 
-TEST_F(future_fixture, isReady_unmodifiedPromise_returnsFalse)
+TEST_F(FutureTestFixture, IsReady_UnmodifiedPromise_ReturnsFalse)
 {
-    azul::async::promise<int> promise;
-    auto future = promise.get_future();
-    ASSERT_FALSE(future.is_ready());
+    azul::async::Promise<int> promise;
+    auto future = promise.GetFuture();
+    ASSERT_FALSE(future.IsReady());
 }
 
-TEST_F(future_fixture, isReady_resultSet_returnsTrue)
+TEST_F(FutureTestFixture, IsReady_ResultSet_ReturnsTrue)
 {
-    azul::async::promise<int> promise;
-    auto future = promise.get_future();
-    promise.set_value(42);
-    ASSERT_TRUE(future.is_ready());
+    azul::async::Promise<int> promise;
+    auto future = promise.GetFuture();
+    promise.SetValue(42);
+    ASSERT_TRUE(future.IsReady());
 }
 
-TEST_F(future_fixture, isReady_storesException_returnsTrue)
+TEST_F(FutureTestFixture, IsReady_StoresException_ReturnsTrue)
 {
-    azul::async::promise<int> promise;
-    auto future = promise.get_future();
+    azul::async::Promise<int> promise;
+    auto future = promise.GetFuture();
 
     try
     {
@@ -109,92 +109,92 @@ TEST_F(future_fixture, isReady_storesException_returnsTrue)
     }
     catch(const std::runtime_error&)
     {
-        promise.set_exception(std::current_exception());
+        promise.SetException(std::current_exception());
     }
     
-    ASSERT_TRUE(future.is_ready());
+    ASSERT_TRUE(future.IsReady());
 }
 
-TEST_F(future_fixture, isReady_promiseBroken_returnsTrue)
+TEST_F(FutureTestFixture, IsReady_PromiseBroken_ReturnsTrue)
 {
-    azul::async::future<int> future;
+    azul::async::Future<int> future;
     {
-        azul::async::promise<int> promise;
-        future = promise.get_future();
+        azul::async::Promise<int> promise;
+        future = promise.GetFuture();
     }
-    ASSERT_TRUE(future.is_ready());
+    ASSERT_TRUE(future.IsReady());
 }
 
-TEST_F(future_fixture, wait_delayedResult_blocksInitially)
+TEST_F(FutureTestFixture, Wait_DelayedResult_BlocksInitially)
 {
-    azul::async::promise<int> promise;
-    azul::async::future<int> future = promise.get_future();
-    bool result_available = false;
+    azul::async::Promise<int> promise;
+    azul::async::Future<int> future = promise.GetFuture();
+    bool resultAvailable = false;
 
-    std::thread otherThread([future, &result_available](){
-        future.wait();
-        result_available = true;
+    std::thread otherThread([future, &resultAvailable](){
+        future.Wait();
+        resultAvailable = true;
     });
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    ASSERT_FALSE(result_available);
+    ASSERT_FALSE(resultAvailable);
 
-    promise.set_value(42);
+    promise.SetValue(42);
     otherThread.join();
-    ASSERT_TRUE(result_available);
+    ASSERT_TRUE(resultAvailable);
 }
 
-TEST_F(future_fixture, waitFor_delayedResult_blocksInitially)
+TEST_F(FutureTestFixture, WaitFor_DelayedResult_BlocksInitially)
 {
-    azul::async::promise<int> promise;
-    azul::async::future<int> future = promise.get_future();
-    bool timeout_occured = false;
+    azul::async::Promise<int> promise;
+    azul::async::Future<int> future = promise.GetFuture();
+    bool timeoutOccured = false;
 
-    std::thread otherThread([future, &timeout_occured](){
-        timeout_occured = !future.wait_for(std::chrono::milliseconds(1000));
+    std::thread otherThread([future, &timeoutOccured](){
+        timeoutOccured = !future.WaitFor(std::chrono::milliseconds(1000));
     });
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    promise.set_value(42);
+    promise.SetValue(42);
 
     otherThread.join();
-    ASSERT_FALSE(timeout_occured);
+    ASSERT_FALSE(timeoutOccured);
 }
 
-TEST_F(future_fixture, waitFor_noResult_timesOut)
+TEST_F(FutureTestFixture, WaitFor_NoResult_TimesOut)
 {
-    azul::async::promise<int> promise;
-    azul::async::future<int> future = promise.get_future();
-    bool timeout_occured = false;
+    azul::async::Promise<int> promise;
+    azul::async::Future<int> future = promise.GetFuture();
+    bool timeoutOccured = false;
 
-    std::thread otherThread([future, &timeout_occured](){
-        timeout_occured = !future.wait_for(std::chrono::milliseconds(10));
+    std::thread otherThread([future, &timeoutOccured](){
+        timeoutOccured = !future.WaitFor(std::chrono::milliseconds(10));
     });
 
     otherThread.join();
-    ASSERT_TRUE(timeout_occured);
+    ASSERT_TRUE(timeoutOccured);
 }
 
-TEST_F(future_fixture, then_continuationReturningInt_resultAvailable)
+TEST_F(FutureTestFixture, Then_ContinuationReturningInt_ResultAvailable)
 {
-    azul::async::promise<int> promise;
-    azul::async::future<int> future = promise.get_future();
+    azul::async::Promise<int> promise;
+    auto future = promise.GetFuture();
 
-    auto future2 = future.then([](azul::async::future<int> f){ return f.get(); });
+    auto future2 = future.Then([](auto f){ return f.Get(); });
 
-    const int expected_value = 42;
+    const int expectedValue = 42;
 
-    promise.set_value(expected_value);
-    ASSERT_NO_THROW(future2.wait());
-    ASSERT_EQ(expected_value, future2.get());
+    promise.SetValue(expectedValue);
+    ASSERT_NO_THROW(future2.Wait());
+    ASSERT_EQ(expectedValue, future2.Get());
 }
 
-TEST_F(future_fixture, then_continuationReturningVoid_continuationCalled)
+TEST_F(FutureTestFixture, Then_ContinuationReturningVoid_ContinuationCalled)
 {
-    azul::async::promise<int> promise;
-    azul::async::future future = promise.get_future();
+    azul::async::Promise<int> promise;
+    auto future = promise.GetFuture();
 
-    auto future2 = future.then([](auto){ });
-    promise.set_value(42);
-    ASSERT_NO_THROW(future2.wait());
-    ASSERT_NO_THROW(future2.get());
+    auto future2 = future.Then([](auto){ });
+    promise.SetValue(42);
+    ASSERT_NO_THROW(future2.Wait());
+    ASSERT_NO_THROW(future2.Get());
 }

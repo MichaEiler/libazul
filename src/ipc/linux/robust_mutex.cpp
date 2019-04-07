@@ -1,50 +1,49 @@
 #include "azul/ipc/sync/robust_mutex.hpp"
 
-#include <azul/utils/disposer.hpp>
 #include <linux/robust_mutex.hpp>
 
-azul::ipc::sync::robust_mutex::robust_mutex(std::string const& name, bool const is_owner)
-    : impl_(std::make_unique<::robust_mutex>(name, is_owner))
+azul::ipc::sync::RobustMutex::RobustMutex(std::string const& name, bool const isOwner)
+    : _impl(std::make_unique<::RobustMutex>(name, isOwner))
 {
 }
 
-azul::ipc::sync::robust_mutex::robust_mutex() : impl_(nullptr)
+azul::ipc::sync::RobustMutex::RobustMutex() : _impl(nullptr)
 {
 }
 
-azul::ipc::sync::robust_mutex::~robust_mutex()
+azul::ipc::sync::RobustMutex::~RobustMutex()
 {
 }
 
-void azul::ipc::sync::robust_mutex::lock()
+void azul::ipc::sync::RobustMutex::lock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     instance->lock();
 }
 
-bool azul::ipc::sync::robust_mutex::try_lock()
+bool azul::ipc::sync::RobustMutex::try_lock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     return instance->try_lock();
 }
 
-void azul::ipc::sync::robust_mutex::unlock()
+void azul::ipc::sync::RobustMutex::unlock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     instance->unlock();
 }

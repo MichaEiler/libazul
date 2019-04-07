@@ -7,38 +7,38 @@
 
 namespace
 {
-    class robust_mutex final
+    class RobustMutex final
     {
     private:
-        ::azul::utils::disposer disposer_;
-        void* mutex_ = nullptr;
-        std::thread::id current_locking_thread_;
+        ::azul::utils::Disposer _disposer;
+        void* _mutex = nullptr;
+        std::thread::id _currentLockingThread;
 
     public:
-        explicit robust_mutex(std::string const& name, bool const)
+        explicit RobustMutex(std::string const& name, bool const)
         {
-            mutex_ = CreateMutexA(nullptr, false, name.c_str());
+            _mutex = CreateMutexA(nullptr, false, name.c_str());
 
-            if (mutex_ == nullptr)
+            if (_mutex == nullptr)
             {
                 throw std::runtime_error("CreateMutexA failed, error: " + std::to_string(GetLastError()));
             }
 
-            disposer_.set([=]() { CloseHandle(mutex_); });
+            _disposer.Set([=]() { CloseHandle(_mutex); });
         }
 
         void lock()
         {
-            const auto thread_id = std::this_thread::get_id();
-            if (current_locking_thread_ == thread_id)
+            const auto threadId = std::this_thread::get_id();
+            if (_currentLockingThread == threadId)
             {
                 throw std::runtime_error("Attempted to recursively lock a mutex.");
             }
 
-            const auto result = WaitForSingleObject(mutex_, INFINITE);
+            const auto result = WaitForSingleObject(_mutex, INFINITE);
             if (result == WAIT_ABANDONED || result == WAIT_OBJECT_0)
             {
-                current_locking_thread_ = thread_id;
+                _currentLockingThread = threadId;
                 return;
             }
 
@@ -51,12 +51,12 @@ namespace
         bool try_lock()
         {
             const auto thread_id = std::this_thread::get_id();
-            if (current_locking_thread_ == thread_id)
+            if (_currentLockingThread == thread_id)
             {
                 throw std::runtime_error("Attempted to recursively lock a mutex.");
             }
 
-            const auto result = WaitForSingleObject(mutex_, 0);
+            const auto result = WaitForSingleObject(_mutex, 0);
             if (result == WAIT_FAILED)
             {
                 throw std::runtime_error("WaitForSingleObject failed, error: " + std::to_string(GetLastError()));
@@ -64,7 +64,7 @@ namespace
 
             if ((result == WAIT_OBJECT_0) || (result == WAIT_ABANDONED))
             {
-                current_locking_thread_ = thread_id;
+                _currentLockingThread = thread_id;
                 return true;
             }
 
@@ -73,60 +73,60 @@ namespace
 
         void unlock()
         {
-            if (!ReleaseMutex(mutex_))
+            if (!ReleaseMutex(_mutex))
             {
                 throw std::runtime_error("ReleaseMutex failed, error: " + std::to_string(GetLastError()));
             }
 
-            current_locking_thread_ = std::thread::id();
+            _currentLockingThread = std::thread::id();
         }
     };
 }
 
 // -----------------------------------------------------------------------------------------------------
 
-azul::ipc::sync::robust_mutex::robust_mutex(std::string const& name, bool const is_owner)
-    : impl_(std::make_unique<::robust_mutex>(name, is_owner))
+azul::ipc::sync::RobustMutex::RobustMutex(std::string const& name, bool const _isOwner)
+    : _impl(std::make_unique<::RobustMutex>(name, _isOwner))
 {
 }
 
-azul::ipc::sync::robust_mutex::robust_mutex() : impl_(nullptr)
+azul::ipc::sync::RobustMutex::RobustMutex() : _impl(nullptr)
 {
 }
 
-azul::ipc::sync::robust_mutex::~robust_mutex()
+azul::ipc::sync::RobustMutex::~RobustMutex()
 {
 }
 
-void azul::ipc::sync::robust_mutex::lock()
+void azul::ipc::sync::RobustMutex::lock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     instance->lock();
 }
 
-bool azul::ipc::sync::robust_mutex::try_lock()
+bool azul::ipc::sync::RobustMutex::try_lock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     return instance->try_lock();
 }
 
-void azul::ipc::sync::robust_mutex::unlock()
+void azul::ipc::sync::RobustMutex::unlock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     instance->unlock();
 }

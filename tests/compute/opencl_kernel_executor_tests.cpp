@@ -10,8 +10,8 @@ class kernel_executor_fixture : public testing::Test
 
 TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsValid)
 {
-    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);
+    const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);
 
     const std::size_t width = 1920;
     const std::size_t height = 1080;
@@ -22,8 +22,8 @@ TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsVal
         image[get_global_id(1) * width + get_global_id(0)]++;
     };
 
-    auto result = kernel_executor->execute(kernel, { width, height });
-    result.get();
+    auto result = kernel_executor->Execute(kernel, { width, height });
+    result.Get();
 
     for (std::size_t i = 0; i < image.size(); ++i)
     {
@@ -37,8 +37,8 @@ TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsVal
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted)
 {
-    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);
+    const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);
 
     std::vector<int> expected_result { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0};
     std::vector<int> result(expected_result.size(), 0);
@@ -48,8 +48,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted
         result[get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute(kernel, { 8u });
-    future.wait();
+    auto future = kernel_executor->Execute(kernel, { 8u });
+    future.Wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
     {
@@ -59,8 +59,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
 {
-    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);
+    const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);
 
     std::vector<int> expected_result { 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
     std::vector<int> result(expected_result.size(), 0);
@@ -70,8 +70,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
         result[get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute(kernel, { 7u }, { 3u });
-    future.wait();
+    auto future = kernel_executor->Execute(kernel, { 7u }, { 3u });
+    future.Wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
     {
@@ -81,8 +81,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecuted)
 {
-    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   
 
     std::vector<int> expected_result { 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     std::vector<int> result(expected_result.size(), 0);
@@ -92,8 +92,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecute
         result[get_global_id(1) * width + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute(kernel, { 3u, 2u });
-    future.wait();
+    auto future = kernel_executor->Execute(kernel, { 3u, 2u });
+    future.Wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
     {
@@ -103,8 +103,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecute
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
 {
-    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   
 
     std::vector<int> expected_result { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 };
     std::vector<int> result(expected_result.size(), 0);
@@ -114,8 +114,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
         result[get_global_id(1) * width + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute(kernel, { 2u, 1u }, { 1u, 2u });
-    future.wait();
+    auto future = kernel_executor->Execute(kernel, { 2u, 1u }, { 1u, 2u });
+    future.Wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
     {
@@ -125,8 +125,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecuted)
 {
-    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   
 
     // prepare expected result, a cuboid in the lower left corner with width 4, depth 3 and height 2
     const int edge = 5;
@@ -149,8 +149,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecu
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute(kernel, { 4u, 3u, 2u });
-    future.wait();
+    auto future = kernel_executor->Execute(kernel, { 4u, 3u, 2u });
+    future.Wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
     {
@@ -160,8 +160,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecu
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_offsetConsidered)
 {
-    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::StaticThreadPool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::OpenClComputeExecutor>(executor);   
 
     // prepare expected result, nested cubes
     const int edge = 5;
@@ -193,8 +193,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_offsetConsidered)
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };
 
-    auto future = kernel_executor->execute(kernel, { 2u, 2u, 2u }, { 2u, 2u, 1u });
-    future.wait();
+    auto future = kernel_executor->Execute(kernel, { 2u, 2u, 2u }, { 2u, 2u, 1u });
+    future.Wait();
 
     for (std::size_t i = 0; i < result.size(); ++i)
     {

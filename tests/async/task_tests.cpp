@@ -1,137 +1,137 @@
 #include <chrono>
 #include <future>
 #include <gmock/gmock.h>
-#include <azul/async/detail/task.hpp>
+#include <azul/async/task.hpp>
 #include <stdexcept>
 #include <thread>
 
-class task_fixture : public testing::Test
+class TaskTestFixture : public testing::Test
 {
 };
 
-TEST_F(task_fixture, wrapDependencies_twoInputFutures_resultSet)
+TEST_F(TaskTestFixture, WrapDependencies_TwoInputFutures_ResultSet)
 {
-    azul::async::promise<int> promise;
-    auto future = promise.get_future();
+    azul::async::Promise<int> promise;
+    auto future = promise.GetFuture();
 
-    azul::async::promise<bool> promise2;
-    auto future2 = promise2.get_future();
+    azul::async::Promise<bool> promise2;
+    auto future2 = promise2.GetFuture();
 
-    auto final_future = azul::async::detail::wrap_dependencies(future, future2);
+    auto finalFuture = azul::async::WrapDependencies(future, future2);
 
-    ASSERT_FALSE(future.is_ready());
-    ASSERT_FALSE(future2.is_ready());
-    ASSERT_FALSE(final_future.is_ready());
+    ASSERT_FALSE(future.IsReady());
+    ASSERT_FALSE(future2.IsReady());
+    ASSERT_FALSE(finalFuture.IsReady());
 
-    promise.set_value(42);
+    promise.SetValue(42);
 
-    ASSERT_TRUE(future.is_ready());
-    ASSERT_FALSE(future2.is_ready());
-    ASSERT_FALSE(final_future.is_ready());
+    ASSERT_TRUE(future.IsReady());
+    ASSERT_FALSE(future2.IsReady());
+    ASSERT_FALSE(finalFuture.IsReady());
 
-    promise2.set_value(true);
+    promise2.SetValue(true);
 
-    ASSERT_TRUE(future.is_ready());
-    ASSERT_TRUE(future2.is_ready());
-    ASSERT_TRUE(final_future.is_ready());
+    ASSERT_TRUE(future.IsReady());
+    ASSERT_TRUE(future2.IsReady());
+    ASSERT_TRUE(finalFuture.IsReady());
 }
 
-TEST_F(task_fixture, wrapDependencies_zeroInputFutures_resultImmediatelySet)
+TEST_F(TaskTestFixture, WrapDependencies_ZeroInputFutures_ResultImmediatelySet)
 {
-    auto future = azul::async::detail::wrap_dependencies();
-    ASSERT_TRUE(future.is_ready());
+    auto future = azul::async::WrapDependencies();
+    ASSERT_TRUE(future.IsReady());
 }
 
-TEST_F(task_fixture, executeTask_taskThrowsException_exceptionCorrectlyForwarded)
+TEST_F(TaskTestFixture, ExecuteTask_TaskThrowsException_exceptionCorrectlyForwarded)
 {
-    auto task_action = []() { throw std::invalid_argument(""); };
-    azul::async::detail::task_type<void> task(task_action);
-    azul::async::future<void> future = task.get_future();
+    auto taskAction = []() { throw std::invalid_argument(""); };
+    azul::async::Task<void> task(taskAction);
+    auto future = task.GetFuture();
 
     task();
 
-    ASSERT_THROW(future.get(), std::invalid_argument);
+    ASSERT_THROW(future.Get(), std::invalid_argument);
 }
 
-TEST_F(task_fixture, executeTask_taskDestroyedResultReady_noExceptionThrown)
+TEST_F(TaskTestFixture, ExecuteTask_TaskDestroyedResultReady_NoExceptionThrown)
 {
-    azul::async::future<void> future;
+    azul::async::Future<void> future;
     
     {
-        auto task_action = [](){};
-        azul::async::detail::task_type<void> task(task_action);
-        future = task.get_future();
+        auto taskAction = [](){};
+        azul::async::Task<void> task(taskAction);
+        future = task.GetFuture();
 
         task();
     }
 
-    ASSERT_NO_THROW(future.get());
+    ASSERT_NO_THROW(future.Get());
 }
 
-TEST_F(task_fixture, executeTask_taskDestroyedExceptionCached_exceptionCorrectlyForwarded)
+TEST_F(TaskTestFixture, ExecuteTask_TaskDestroyedExceptionCached_ExceptionCorrectlyForwarded)
 {
-    azul::async::future<void> future;
+    azul::async::Future<void> future;
 
     {
-        auto task_action = [](){ throw std::invalid_argument(""); };
-        azul::async::detail::task_type<void> task(task_action);
-        future = task.get_future();
+        auto taskAction = [](){ throw std::invalid_argument(""); };
+        azul::async::Task<void> task(taskAction);
+        future = task.GetFuture();
 
         task();
     }
 
-    ASSERT_THROW(future.get(), std::invalid_argument);
+    ASSERT_THROW(future.Get(), std::invalid_argument);
 }
 
-TEST_F(task_fixture, executeTask_taskProvidesReturnValue_futureReturnsResult)
+TEST_F(TaskTestFixture, ExecuteTask_TaskProvidesReturnValue_FutureReturnsResult)
 {
-    auto task_action = [](){ return 1337; };
-    azul::async::detail::task_type<int> task(task_action);
-    auto future = task.get_future();
+    auto taskAction = []() -> int { return 1337; };
+    azul::async::Task<int> task(taskAction);
+    auto future = task.GetFuture();
     task();
 
-    ASSERT_EQ(1337, future.get());
+    ASSERT_EQ(1337, future.Get());
 }
 
-TEST_F(task_fixture, getValue_taskInOtherThread_blocksUntilTaskProcessed)
+TEST_F(TaskTestFixture, GetValue_TaskInOtherThread_BlocksUntilTaskProcessed)
 {
-    bool result_available = false;
+    bool resultAvailable = false;
 
-    azul::async::detail::task_type<void> task([](){});
-    auto future = task.get_future();
+    azul::async::Task<void> task([](){});
+    auto future = task.GetFuture();
 
     std::thread other_thread([&](){
-        future.get();
-        result_available = true;
+        future.Get();
+        resultAvailable = true;
     });
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    ASSERT_FALSE(result_available);
+    ASSERT_FALSE(resultAvailable);
 
     task();
     other_thread.join();
-    ASSERT_TRUE(result_available);   
+    ASSERT_TRUE(resultAvailable);   
 }
 
-TEST_F(task_fixture, isReady_noDependency_returnsTrue)
+TEST_F(TaskTestFixture, IsReady_NoDependency_ReturnsTrue)
 {
-    auto task = azul::async::detail::task_type<void>([](){});
-    ASSERT_TRUE(task.is_ready());
+    auto task = azul::async::Task<void>([](){});
+    ASSERT_TRUE(task.IsReady());
 }
 
-TEST_F(task_fixture, isReady_dependencyNotReady_returnsFalse)
+TEST_F(TaskTestFixture, IsReady_DependencyNotReady_ReturnsFalse)
 {
-    azul::async::promise<void> promise;
-    auto future = promise.get_future();
-    auto task = azul::async::detail::task_type<void>([](){}, future);
-    ASSERT_FALSE(task.is_ready());
+    azul::async::Promise<void> promise;
+    auto future = promise.GetFuture();
+    auto task = azul::async::Task<void>([](){}, future);
+    ASSERT_FALSE(task.IsReady());
 }
 
-TEST_F(task_fixture, isReady_dependencyReady_returnsTrue)
+TEST_F(TaskTestFixture, IsReady_DependencyReady_ReturnsTrue)
 {
-    azul::async::promise<void> promise;
-    auto future = promise.get_future();
-    promise.set_value();
-    auto task = azul::async::detail::task_type<void>([](){}, future);
-    ASSERT_TRUE(task.is_ready());
+    azul::async::Promise<void> promise;
+    auto future = promise.GetFuture();
+    promise.SetValue();
+    auto task = azul::async::Task<void>([](){}, future);
+    ASSERT_TRUE(task.IsReady());
 }

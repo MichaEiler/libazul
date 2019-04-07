@@ -20,112 +20,112 @@ namespace azul
     {
         namespace clcpp
         {
-            class opencl_kernel_executor
+            class OpenClComputeExecutor
             {
             public:
-                explicit opencl_kernel_executor(std::shared_ptr<async::static_thread_pool> const& executor)
-                    : executor_(executor)
+                explicit OpenClComputeExecutor(std::shared_ptr<async::StaticThreadPool> const& executor)
+                    : _executor(executor)
                 {
                     
                 }
 
-                azul::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t> const& global_work_size, std::tuple<std::size_t> const& global_work_offset = { 0u })
+                azul::async::Future<void> Execute(std::function<void()> && kernel, std::tuple<std::size_t> const& globalWorkSize, std::tuple<std::size_t> const& globalWorkOffset = { 0u })
                 {
-                    std::vector<azul::async::future<void>> task_results;
+                    std::vector<azul::async::Future<void>> taskResults;
 
-                    const auto work_items = std::get<0>(global_work_size);
-                    const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
+                    const auto workItems = std::get<0>(globalWorkSize);
+                    const auto workItemsPerTask = std::max<std::size_t>(workItems / _executor->ThreadCount(), 1ul);
 
-                    for (std::size_t i = 0; i < work_items; i += work_items_per_task)
+                    for (std::size_t i = 0; i < workItems; i += workItemsPerTask)
                     {
-                        const auto work_items_to_process = std::min(work_items_per_task, work_items - i);
-                        const auto work_items_offset = std::get<0>(global_work_offset) + i;
+                        const auto workItemsToProcess = std::min(workItemsPerTask, workItems - i);
+                        const auto workItemOffset = std::get<0>(globalWorkOffset) + i;
                         
-                        auto task = [kernel, work_items_offset, work_items_to_process]() {
-                            for (std::size_t j = work_items_offset; j < work_items_offset + work_items_to_process; ++j)
+                        auto task = [kernel, workItemOffset, workItemsToProcess]() {
+                            for (std::size_t j = workItemOffset; j < workItemOffset + workItemsToProcess; ++j)
                             {
                                 set_global_id(0, j);
                                 kernel();
                             }
                         };
-                        task_results.emplace_back(executor_->execute(task));
+                        taskResults.emplace_back(_executor->Execute(task));
                     }
 
-                    return wait_for(task_results);
+                    return WaitFor(taskResults);
                 }
 
-                azul::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t> const& global_work_offset = { 0u, 0u })
+                azul::async::Future<void> Execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t> const& globalWorkSize, std::tuple<std::size_t, std::size_t> const& globalWorkOffset = { 0u, 0u })
                 {
-                    std::vector<azul::async::future<void>> task_results;
+                    std::vector<azul::async::Future<void>> taskResults;
 
-                    const auto work_items  = std::get<0>(global_work_size) * std::get<1>(global_work_size);
-                    const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
+                    const auto workItems  = std::get<0>(globalWorkSize) * std::get<1>(globalWorkSize);
+                    const auto workItemsPerTask = std::max<std::size_t>(workItems / _executor->ThreadCount(), 1ul);
 
-                    for (std::size_t i = 0; i < work_items; i += work_items_per_task)
+                    for (std::size_t i = 0; i < workItems; i += workItemsPerTask)
                     {
-                        const auto work_item_count = std::min(work_items_per_task, work_items - i);
-                        auto task = [kernel, global_work_offset, work_item_count, size_x = std::get<0>(global_work_size), work_item_start=i]() {
+                        const auto work_item_count = std::min(workItemsPerTask, workItems - i);
+                        auto task = [kernel, globalWorkOffset, work_item_count, size_x = std::get<0>(globalWorkSize), work_item_start=i]() {
                             for (std::size_t j = work_item_start; j < work_item_start + work_item_count; ++j)
                             {
-                                set_global_id(0, std::get<0>(global_work_offset) + j % size_x);
-                                set_global_id(1, std::get<1>(global_work_offset) + j / size_x);
+                                set_global_id(0, std::get<0>(globalWorkOffset) + j % size_x);
+                                set_global_id(1, std::get<1>(globalWorkOffset) + j / size_x);
                                 kernel();
                             }
                         };
-                        task_results.emplace_back(executor_->execute(task));
+                        taskResults.emplace_back(_executor->Execute(task));
                     }
 
-                    return wait_for(task_results);
+                    return WaitFor(taskResults);
                 }
 
-                azul::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_offset = { 0u, 0u, 0u })
+                azul::async::Future<void> Execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t, std::size_t> const& globalWorkSize, std::tuple<std::size_t, std::size_t, std::size_t> const& globalWorkOffset = { 0u, 0u, 0u })
                 {
-                    std::vector<azul::async::future<void>> task_results;
+                    std::vector<azul::async::Future<void>> taskResults;
 
-                    const auto work_items  = std::get<0>(global_work_size) * std::get<1>(global_work_size) * std::get<2>(global_work_size);
-                    const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
+                    const auto workItems  = std::get<0>(globalWorkSize) * std::get<1>(globalWorkSize) * std::get<2>(globalWorkSize);
+                    const auto workItemsPerTask = std::max<std::size_t>(workItems / _executor->ThreadCount(), 1ul);
 
-                    for (std::size_t i = 0; i < work_items; i += work_items_per_task)
+                    for (std::size_t i = 0; i < workItems; i += workItemsPerTask)
                     {
-                        const auto work_item_count = std::min(work_items_per_task, work_items - i);
-                        auto task = [kernel, global_work_offset, global_work_size, work_item_count, work_item_start = i]() {
+                        const auto work_item_count = std::min(workItemsPerTask, workItems - i);
+                        auto task = [kernel, globalWorkOffset, globalWorkSize, work_item_count, work_item_start = i]() {
                             for (std::size_t j = work_item_start; j < work_item_start + work_item_count; ++j)
                             {
-                                set_global_id(2, std::get<2>(global_work_offset) + j / (std::get<0>(global_work_size) * std::get<1>(global_work_size)));
-                                set_global_id(1, std::get<1>(global_work_offset) + (j % (std::get<0>(global_work_size) * std::get<1>(global_work_size))) / std::get<0>(global_work_size));
-                                set_global_id(0, std::get<0>(global_work_offset) + j % std::get<0>(global_work_size));
+                                set_global_id(2, std::get<2>(globalWorkOffset) + j / (std::get<0>(globalWorkSize) * std::get<1>(globalWorkSize)));
+                                set_global_id(1, std::get<1>(globalWorkOffset) + (j % (std::get<0>(globalWorkSize) * std::get<1>(globalWorkSize))) / std::get<0>(globalWorkSize));
+                                set_global_id(0, std::get<0>(globalWorkOffset) + j % std::get<0>(globalWorkSize));
                                 kernel();
                             }
                         };
-                        task_results.emplace_back(executor_->execute(task));
+                        taskResults.emplace_back(_executor->Execute(task));
                     }
 
-                    return wait_for(task_results);
+                    return WaitFor(taskResults);
                 }
 
             private:
-                azul::async::future<void> wait_for(std::vector<azul::async::future<void>>& futures)
+                azul::async::Future<void> WaitFor(std::vector<azul::async::Future<void>>& futures)
                 {
-                    auto shared_future_state = std::make_shared<azul::async::detail::future_state<void>>();
-                    auto future = ::azul::async::future<void>(shared_future_state);
+                    auto sharedFutureState = std::make_shared<azul::async::detail::FutureState<void>>();
+                    auto future = ::azul::async::Future<void>(sharedFutureState);
 
-                    auto shared_promise_activator = std::make_shared<azul::utils::disposer>([shared_future_state]() {
-                        shared_future_state->set();
+                    auto sharedPromiseActivator = std::make_shared<azul::utils::Disposer>([sharedFutureState]() {
+                        sharedFutureState->SetValue();
                     });
 
-                    auto func = [shared_promise_activator](auto) mutable {
-                        shared_promise_activator.reset();
+                    auto func = [sharedPromiseActivator](auto) mutable {
+                        sharedPromiseActivator.reset();
                     };
 
                     for (auto& f : futures)
                     {
-                        f.then(func);
+                        f.Then(func);
                     }
 
                     return future;
                 }
 
-                std::shared_ptr<async::static_thread_pool> executor_;
+                std::shared_ptr<async::StaticThreadPool> _executor;
             };
         }
     }

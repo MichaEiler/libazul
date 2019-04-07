@@ -10,59 +10,59 @@ namespace azul
         namespace detail
         {
             template <typename TItem>
-            class queue
+            class Queue
             {
             private:
-                TItem* items_ = nullptr;
-                std::uint32_t* read_pos_ = nullptr;
-                std::uint32_t* write_pos_ = nullptr;
-                std::uint32_t* count_ = nullptr;
-                std::uint32_t size_ = 0;
+                TItem* _items = nullptr;
+                std::uint32_t* _readPosition = nullptr;
+                std::uint32_t* _writePosition = nullptr;
+                std::uint32_t* _count = nullptr;
+                std::uint32_t _size = 0;
 
             public:
-                explicit queue(void *const memory, std::uint32_t const size, bool initialize = false)
-                    : items_(reinterpret_cast<TItem* const>(reinterpret_cast<char *const>(memory) + sizeof(std::uint32_t) * 3)),
-                    read_pos_(reinterpret_cast<std::uint32_t* const>(memory)),
-                    write_pos_(read_pos_ + 1),
-                    count_(write_pos_ + 1),
-                    size_((size - static_cast<std::uint32_t>(sizeof(std::uint32_t)) * 3) / static_cast<std::uint32_t>(sizeof(TItem)))
+                explicit Queue(void *const memory, std::uint32_t const size, bool initialize = false)
+                    : _items(reinterpret_cast<TItem* const>(reinterpret_cast<char *const>(memory) + sizeof(std::uint32_t) * 3)),
+                    _readPosition(reinterpret_cast<std::uint32_t* const>(memory)),
+                    _writePosition(_readPosition + 1),
+                    _count(_writePosition + 1),
+                    _size((size - static_cast<std::uint32_t>(sizeof(std::uint32_t)) * 3) / static_cast<std::uint32_t>(sizeof(TItem)))
                 {
                     if (initialize)
                     {
-                        *read_pos_ = 0;
-                        *write_pos_ = 0;
-                        *count_ = 0;
+                        *_readPosition = 0;
+                        *_writePosition = 0;
+                        *_count = 0;
                     }
                 }
 
-                queue() = default;
+                Queue() = default;
 
-                queue(queue const&) = default;
-                queue(queue &&) = default;
-                queue& operator=(queue const&) = default;
-                queue& operator=(queue &&) = default;
+                Queue(Queue const&) = default;
+                Queue(Queue &&) = default;
+                Queue& operator=(Queue const&) = default;
+                Queue& operator=(Queue &&) = default;
 
-                bool space_available()
+                bool SpaceAvailable() const
                 {
-                    return *count_ < size_;
+                    return *_count < _size;
                 }
 
-                std::uint32_t count()
+                std::uint32_t Count() const
                 {
-                    return *count_;
+                    return *_count;
                 }
 
-                std::uint32_t size()
+                std::uint32_t Size() const
                 {
-                    return size_;
+                    return _size;
                 }
 
-                bool contains(const TItem& item)
+                bool Contains(const TItem& item) const
                 {
-                    for (std::uint32_t i = 0; i < *count_; ++i)
+                    for (std::uint32_t i = 0; i < *_count; ++i)
                     {
-                        std::uint32_t const position = (*read_pos_ + i + size_) % size_;
-                        if (items_[position] == item)
+                        std::uint32_t const position = (*_readPosition + i + _size) % _size;
+                        if (_items[position] == item)
                         {
                             return true;
                         }
@@ -71,20 +71,20 @@ namespace azul
                     return false;
                 }
 
-                bool remove(TItem const& item)
+                bool Remove(TItem const& item)
                 {
-                    if (count() == 0)
+                    if (Count() == 0)
                     {
                         return false;
                     }
 
-                    for (std::uint32_t i = 0; i < *count_; ++i)
+                    for (std::uint32_t i = 0; i < *_count; ++i)
                     {
-                        std::uint32_t const position = (*read_pos_ + i + size_) % size_;
-                        if (items_[position] == item)
+                        std::uint32_t const position = (*_readPosition + i + _size) % _size;
+                        if (_items[position] == item)
                         {
-                            items_[position] = back();
-                            pop_back();
+                            _items[position] = Back();
+                            PopBack();
                             return true;
                         }
                     }
@@ -92,12 +92,12 @@ namespace azul
                     return false;
                 }
 
-                void pop()
+                void Pop()
                 {
-                    if (count() > 0)
+                    if (Count() > 0)
                     {
-                        *read_pos_ = (*read_pos_ + 1 + size_) % size_;
-                        (*count_)--;
+                        *_readPosition = (*_readPosition + 1 + _size) % _size;
+                        (*_count)--;
                     }
                     else
                     {
@@ -105,22 +105,22 @@ namespace azul
                     }
                 }
 
-                TItem const& front()
+                TItem const& Front() const
                 {
-                    if (count() > 0)
+                    if (Count() > 0)
                     {
-                        return items_[*read_pos_];
+                        return _items[*_readPosition];
                     }
 
                     throw std::runtime_error("no item available");
                 }
 
-                void pop_back()
+                void PopBack()
                 {
-                    if (count() > 0)
+                    if (Count() > 0)
                     {
-                        *write_pos_ = (*write_pos_ - 1 + size_) % size_;
-                        (*count_)--;
+                        *_writePosition = (*_writePosition - 1 + _size) % _size;
+                        (*_count)--;
                     }
                     else
                     {
@@ -128,30 +128,30 @@ namespace azul
                     }
                 }
 
-                TItem const& back()
+                TItem const& Back() const
                 {
-                    if (count() > 0)
+                    if (Count() > 0)
                     {
-                        const auto postitionOfLastItem = (*write_pos_ + size_ - 1) % size_;
-                        return items_[postitionOfLastItem];
+                        const auto postitionOfLastItem = (*_writePosition + _size - 1) % _size;
+                        return _items[postitionOfLastItem];
                     }
 
                     throw std::runtime_error("no item available");
                 }
 
-                void push_back(TItem const& item)
+                void PushBack(TItem const& item)
                 {
-                    if (space_available())
+                    if (SpaceAvailable())
                     {
-                        items_[*write_pos_] = item;
-                        *write_pos_ = (*write_pos_ + 1 + size_) % size_;
-                        (*count_)++;
+                        _items[*_writePosition] = item;
+                        *_writePosition = (*_writePosition + 1 + _size) % _size;
+                        (*_count)++;
                         return;
                     }
 
                     throw std::runtime_error("no space available");
                 }
             };
-        } // namespace detail
+        }
     }
 }

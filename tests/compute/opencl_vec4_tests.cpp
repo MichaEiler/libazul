@@ -1,13 +1,13 @@
 #include <gmock/gmock.h>
 #include <azul/compute/clcpp/opencl_vector.hpp>
 
-using int4 = azul::compute::clcpp::vec4<std::int32_t>;
+using int4 = azul::compute::clcpp::Vec4<std::int32_t>;
 
-class compute_clcpp_vec4_fixture : public testing::Test
+class OpenClVec4TestFixture : public testing::Test
 {
 };
 
-TEST_F(compute_clcpp_vec4_fixture, operator_subtractionAssignment_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_SubtractionAssignment_ResultValid)
 {
     int4 valueA( 1,  5, 10, 50);
     int4 valueB( 3, 10, 47, 99);
@@ -21,7 +21,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_subtractionAssignment_resultValid)
     ASSERT_EQ(valueA.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_additionAssignment_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_AdditionAssignment_ResultValid)
 {
     int4 valueA( 1,  5, 10, 50);
     int4 valueB( 3, 10, 47, 99);
@@ -35,7 +35,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_additionAssignment_resultValid)
     ASSERT_EQ(valueA.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_multiplicationAssignment_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_MultiplicationAssignment_ResultValid)
 {
     int4 valueA( 1,  5, 10, 50);
     std::int32_t valueB(4);
@@ -49,7 +49,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_multiplicationAssignment_resultValid
     ASSERT_EQ(valueA.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_divisionAssignment_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_DivisionAssignment_ResultValid)
 {
     int4 valueA( 16,  24, 36, 56);
     std::int32_t valueB(4);
@@ -63,7 +63,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_divisionAssignment_resultValid)
     ASSERT_EQ(valueA.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_addition_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_Addition_ResultValid)
 {
     int4 valueA( 16,  24, 36, 56);
     int4 valueB(  1,   2,  3,  4);
@@ -77,7 +77,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_addition_resultValid)
     ASSERT_EQ(result.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_subtraction_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_Subtraction_ResultValid)
 {
     int4 valueA( 16,  24, 36, 56);
     int4 valueB(  1,   2,  3,  4);
@@ -91,7 +91,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_subtraction_resultValid)
     ASSERT_EQ(result.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_multiplication_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_Multiplication_ResultValid)
 {
     int4 valueA( 1,  5, 10, 50);
     std::int32_t valueB(4);
@@ -105,7 +105,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_multiplication_resultValid)
     ASSERT_EQ(result.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_division_resultValid)
+TEST_F(OpenClVec4TestFixture, Operator_Division_ResultValid)
 {
     int4 valueA( 16,  24, 36, 56);
     std::int32_t valueB(4);
@@ -119,7 +119,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_division_resultValid)
     ASSERT_EQ(result.w, expectedResult.w);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_equal_correctResult)
+TEST_F(OpenClVec4TestFixture, Operator_Equal_CorrectResult)
 {
     const int4 valueA( 1, 2, 3, 4);
     const int4 valueB( 1, 2, 3, 4);
@@ -129,7 +129,7 @@ TEST_F(compute_clcpp_vec4_fixture, operator_equal_correctResult)
     ASSERT_FALSE(valueA == valueC);
 }
 
-TEST_F(compute_clcpp_vec4_fixture, operator_notEqual_correctResult)
+TEST_F(OpenClVec4TestFixture, Operator_NotEqual_CorrectResult)
 {
     const int4 valueA( 1, 2, 3, 4);
     const int4 valueB( 1, 2, 3, 4);

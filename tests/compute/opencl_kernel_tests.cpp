@@ -8,11 +8,11 @@
 
 
 
-class compute_clcpp_kernel_fixture : public testing::Test
+class OpenClKernelTestFixture : public testing::Test
 {
 };
 
-TEST_F(compute_clcpp_kernel_fixture, kernelVecAdd_executed_resultValid)
+TEST_F(OpenClKernelTestFixture, KernelVecAdd_Executed_ResultValid)
 {
     float input[3]{ 1.0f, 3.0f, 5.0f };
     const float expectedResult[3]{ 2.0f, 6.0f, 10.0f };
@@ -30,14 +30,14 @@ TEST_F(compute_clcpp_kernel_fixture, kernelVecAdd_executed_resultValid)
     }    
 }
 
-TEST_F(compute_clcpp_kernel_fixture, kernelMathBuiltIns_compilationCheck_noWarningsShown)
+TEST_F(OpenClKernelTestFixture, KernelMathBuiltIns_CompilationCheck_NoWarningsShown)
 {
     float input = 1.0f;
     azul::compute::clcpp::set_global_id(0, 0);
     clcpp::kernel_math_builtins(&input);
 }
 
-TEST_F(compute_clcpp_kernel_fixture, kernelVecTypes_compilationCheck_float4Supported)
+TEST_F(OpenClKernelTestFixture, KernelVecTypes_CompilationCheck_Float4Supported)
 {
     float input = 1.0f;
     azul::compute::clcpp::set_global_id(0, 0);

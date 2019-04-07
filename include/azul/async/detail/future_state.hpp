@@ -9,136 +9,136 @@ namespace azul
 {
     namespace async
     {
-        enum class future_errc : std::uint32_t
+        enum class FutureErrorCode : std::uint32_t
         {
-            broken_promise = 0,
+            BrokenPromise = 0,
         };
 
-        class future_error : public std::exception
+        class FutureError : public std::exception
         {
         public:
-            explicit future_error(future_errc const errc)
-                : errc_(errc)
+            explicit FutureError(FutureErrorCode const code)
+                : _code(code)
             {
                 
             }
             
-            future_errc errc() const
+            FutureErrorCode ErrorCode() const
             {
-                return errc_;
+                return _code;
             }
 
         private:
-            future_errc errc_;
+            FutureErrorCode _code;
         };
 
         namespace detail
         {
 
             template <typename T>
-            class future_state
+            class FutureState
             {
             public:
-                explicit future_state()
+                explicit FutureState()
                 {
 
                 }
 
-                future_state(future_state const&) = delete;
-                future_state(future_state&&) = delete;
-                future_state& operator=(future_state const&) = delete;
-                future_state& operator=(future_state&&) = delete;
+                FutureState(FutureState const&) = delete;
+                FutureState(FutureState&&) = delete;
+                FutureState& operator=(FutureState const&) = delete;
+                FutureState& operator=(FutureState&&) = delete;
 
-                bool is_ready() const
+                bool IsReady() const
                 {
-                    std::lock_guard<std::mutex> lock(mutex_);
-                    return state_ != state_type::undefined;
+                    std::lock_guard<std::mutex> lock(_mutex);
+                    return _state != State::Undefined;
                 }
 
-                const T& get()
+                const T& Get()
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
+                    std::unique_lock<std::mutex> lock(_mutex);
 
                     for(;;)
                     {
-                        switch (state_)
+                        switch (_state)
                         {
-                        case state_type::exception:
-                            std::rethrow_exception(exception_);
-                        case state_type::broken_promise:
-                            throw azul::async::future_error(azul::async::future_errc::broken_promise);
-                        case state_type::ready:
-                            return value_;
-                        case state_type::undefined:
-                            condition_.wait(lock);
+                        case State::Exception:
+                            std::rethrow_exception(_exception);
+                        case State::BrokenPromise:
+                            throw azul::async::FutureError(azul::async::FutureErrorCode::BrokenPromise);
+                        case State::Ready:
+                            return _value;
+                        case State::Undefined:
+                            _condition.wait(lock);
                             break;
                         }
                     }
                 }
 
-                void set(T const& value)
+                void SetValue(T const& value)
                 {
                     {
-                        std::lock_guard<std::mutex> lock(mutex_);
-                        value_ = value;
-                        state_ = state_type::ready;
-                        condition_.notify_all();
+                        std::lock_guard<std::mutex> lock(_mutex);
+                        _value = value;
+                        _state = State::Ready;
+                        _condition.notify_all();
                     }
 
-                    for (const auto& continuation : continuations_)
+                    for (const auto& continuation : _continuations)
                     {
                         continuation();
                     }
                 }
 
-                void set(std::exception_ptr const& ex)
+                void SetException(std::exception_ptr const& ex)
                 {
                     {
-                        std::lock_guard<std::mutex> lock(mutex_);
-                        exception_ = ex;
-                        state_ = state_type::exception;
-                        condition_.notify_all();
+                        std::lock_guard<std::mutex> lock(_mutex);
+                        _exception = ex;
+                        _state = State::Exception;
+                        _condition.notify_all();
                     }
 
-                    for (const auto& continuation : continuations_)
+                    for (const auto& continuation : _continuations)
                     {
                         continuation();
                     }
                 }
 
-                void wait()
+                void Wait()
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
+                    std::unique_lock<std::mutex> lock(_mutex);
 
-                    if (state_ == future_state::state_type::undefined)
+                    if (_state == State::Undefined)
                     {
-                        condition_.wait(lock);
+                        _condition.wait(lock);
                     }
                 }
 
                 template<class Rep, class Period>
-                bool wait_for(std::chrono::duration<Rep,Period> const& timeout_duration) const
+                bool WaitFor(std::chrono::duration<Rep,Period> const& timeoutDuration) const
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
-                    if (state_ == future_state::state_type::undefined)
+                    std::unique_lock<std::mutex> lock(_mutex);
+                    if (_state == State::Undefined)
                     {
-                        return condition_.wait_for(lock, timeout_duration) != std::cv_status::timeout;
+                        return _condition.wait_for(lock, timeoutDuration) != std::cv_status::timeout;
                     }
                     return true;
                 }
 
-                void then(std::function<void()> const& continuation)
+                void Then(std::function<void()> const& continuation)
                 {
                     {
-                        std::unique_lock<std::mutex> lock(mutex_);
-                        if (state_ == state_type::broken_promise)
+                        std::unique_lock<std::mutex> lock(_mutex);
+                        if (_state == State::BrokenPromise)
                         {
                             return;
                         }
 
-                        if (state_ == state_type::undefined)
+                        if (_state == State::Undefined)
                         {
-                            continuations_.emplace_back(continuation);
+                            _continuations.emplace_back(continuation);
                             return;
                         }
                     }
@@ -146,144 +146,144 @@ namespace azul
                     continuation();                    
                 }
 
-                std::size_t number_of_continuations() const
+                std::size_t NumberOfContinuations() const
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
-                    return continuations_.size();
+                    std::unique_lock<std::mutex> lock(_mutex);
+                    return _continuations.size();
                 }
 
-                void about_to_destroy_promise()
+                void AboutToDestroyPromise()
                 {
-                    std::lock_guard<std::mutex> lock(mutex_);
-                    if (state_ == state_type::undefined)
+                    std::lock_guard<std::mutex> lock(_mutex);
+                    if (_state == State::Undefined)
                     {
-                        state_ = state_type::broken_promise;
+                        _state = State::BrokenPromise;
                     }
-                    condition_.notify_all();
+                    _condition.notify_all();
                 }
 
             private:
-                mutable std::condition_variable condition_;
-                mutable std::mutex mutex_;
+                mutable std::condition_variable _condition;
+                mutable std::mutex _mutex;
 
-                enum class state_type
+                enum class State
                 {
-                    undefined = 0,
-                    ready = 1,
-                    exception = 2,
-                    broken_promise = 3,
+                    Undefined = 0,
+                    Ready = 1,
+                    Exception = 2,
+                    BrokenPromise = 3,
                 };
 
-                state_type state_{ state_type::undefined };
-                T value_{ };
-                std::exception_ptr exception_{ };
+                State _state{ State::Undefined };
+                T _value{ };
+                std::exception_ptr _exception{ };
 
-                std::vector<std::function<void()>> continuations_;
+                std::vector<std::function<void()>> _continuations;
             };
 
             template <>
-            class future_state<void>
+            class FutureState<void>
             {
             public:
-                explicit future_state()
+                explicit FutureState()
                 {
 
                 }
 
-                future_state(future_state const& other) = delete;
-                future_state(future_state&& other) = delete;
-                future_state& operator=(future_state const& other) = delete;
-                future_state& operator=(future_state&& other) = delete;
+                FutureState(FutureState const& other) = delete;
+                FutureState(FutureState&& other) = delete;
+                FutureState& operator=(FutureState const& other) = delete;
+                FutureState& operator=(FutureState&& other) = delete;
 
-                bool is_ready() const
+                bool IsReady() const
                 {
-                    std::lock_guard<std::mutex> lock(mutex_);
-                    return state_ != state_type::undefined;
+                    std::lock_guard<std::mutex> lock(_mutex);
+                    return _state != State::Undefined;
                 }
 
-                void get()
+                void Get()
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
+                    std::unique_lock<std::mutex> lock(_mutex);
 
                     for(;;)
                     {
-                        switch (state_)
+                        switch (_state)
                         {
-                        case state_type::exception:
-                            std::rethrow_exception(exception_);
-                        case state_type::broken_promise:
-                            throw azul::async::future_error(azul::async::future_errc::broken_promise);
-                        case state_type::ready:
+                        case State::Exception:
+                            std::rethrow_exception(_exception);
+                        case State::BrokenPromise:
+                            throw azul::async::FutureError(azul::async::FutureErrorCode::BrokenPromise);
+                        case State::Ready:
                             return;
-                        case state_type::undefined:
-                            condition_.wait(lock);
+                        case State::Undefined:
+                            _condition.wait(lock);
                             break;
                         }
                     }
                 }
 
-                void set()
+                void SetValue()
                 {
                     {
-                        std::lock_guard<std::mutex> lock(mutex_);
-                        state_ = state_type::ready;
-                        condition_.notify_all();
+                        std::lock_guard<std::mutex> lock(_mutex);
+                        _state = State::Ready;
+                        _condition.notify_all();
                     }
 
-                    for (const auto& continuation : continuations_)
+                    for (const auto& continuation : _continuations)
                     {
                         continuation();
                     }
                 }
 
-                void set(std::exception_ptr const& ex)
+                void SetException(std::exception_ptr const& ex)
                 {
                     {
-                        std::lock_guard<std::mutex> lock(mutex_);
-                        exception_ = ex;
-                        state_ = state_type::exception;
-                        condition_.notify_all();
+                        std::lock_guard<std::mutex> lock(_mutex);
+                        _exception = ex;
+                        _state = State::Exception;
+                        _condition.notify_all();
                     }
 
-                    for (const auto& continuation : continuations_)
+                    for (const auto& continuation : _continuations)
                     {
                         continuation();
                     }
                 }
             
 
-                void wait()
+                void Wait()
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
-                    if (state_ == future_state::state_type::undefined)
+                    std::unique_lock<std::mutex> lock(_mutex);
+                    if (_state == State::Undefined)
                     {
-                        condition_.wait(lock);
+                        _condition.wait(lock);
                     }
                 }
 
                 template<class Rep, class Period>
-                bool wait_for(std::chrono::duration<Rep,Period> const& timeout_duration) const
+                bool wait_for(std::chrono::duration<Rep,Period> const& timeoutDuration) const
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
-                    if (state_ == future_state::state_type::undefined)
+                    std::unique_lock<std::mutex> lock(_mutex);
+                    if (_state == State::Undefined)
                     {
-                        return condition_.wait_for(lock, timeout_duration) != std::cv_status::timeout;
+                        return _condition.wait_for(lock, timeoutDuration) != std::cv_status::timeout;
                     }
                     return true;
                 }
 
-                void then(std::function<void()> const& continuation)
+                void Then(std::function<void()> const& continuation)
                 {
                     {
-                        std::unique_lock<std::mutex> lock(mutex_);
-                        if (state_ == state_type::broken_promise)
+                        std::unique_lock<std::mutex> lock(_mutex);
+                        if (_state == State::BrokenPromise)
                         {
                             return;
                         }
 
-                        if (state_ == state_type::undefined)
+                        if (_state == State::Undefined)
                         {
-                            continuations_.emplace_back(continuation);
+                            _continuations.emplace_back(continuation);
                             return;
                         }
                     }
@@ -291,38 +291,38 @@ namespace azul
                     continuation();                    
                 }
 
-                std::size_t number_of_continuations() const
+                std::size_t NumberOfContinuations() const
                 {
-                    std::unique_lock<std::mutex> lock(mutex_);
-                    return continuations_.size();
+                    std::unique_lock<std::mutex> lock(_mutex);
+                    return _continuations.size();
                 }
 
-                void about_to_destroy_promise()
+                void AboutToDestroyPromise()
                 {
-                    std::lock_guard<std::mutex> lock(mutex_);
-                    if (state_ == state_type::undefined)
+                    std::lock_guard<std::mutex> lock(_mutex);
+                    if (_state == State::Undefined)
                     {
-                        state_ = state_type::broken_promise;
+                        _state = State::BrokenPromise;
                     }
-                    condition_.notify_all();
+                    _condition.notify_all();
                 }
 
             private:
-                mutable std::condition_variable condition_;
-                mutable std::mutex mutex_;
+                mutable std::condition_variable _condition;
+                mutable std::mutex _mutex;
 
-                enum class state_type
+                enum class State
                 {
-                    undefined = 0,
-                    ready = 1,
-                    exception = 2,
-                    broken_promise = 3,
+                    Undefined = 0,
+                    Ready = 1,
+                    Exception = 2,
+                    BrokenPromise = 3,
                 };
 
-                state_type state_{ state_type::undefined };
-                std::exception_ptr exception_{ };
+                State _state{ State::Undefined };
+                std::exception_ptr _exception{ };
 
-                std::vector<std::function<void()>> continuations_;
+                std::vector<std::function<void()>> _continuations;
             };
         }
     }

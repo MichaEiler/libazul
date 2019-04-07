@@ -16,33 +16,33 @@
 
 namespace
 {
-    class robust_mutex final
+    class RobustMutex final
     {
     private:
         // synchronisation within a process
-        azul::ipc::shared_memory mutex_memory_;
-        azul::utils::disposer mutex_disposer_;
-        pthread_mutex_t * mutex_;
+        azul::ipc::SharedMemory _mutexMemory;
+        azul::utils::Disposer _mutexDisposer;
+        pthread_mutex_t * _mutex;
 
         // synchronisation between multiple processes with recovery option
-        azul::utils::disposer file_disposer_;
+        azul::utils::Disposer file_disposer_;
         int file_;
 
-        static pthread_mutex_t* create_local_mutex(azul::ipc::shared_memory& mutex_memory, azul::utils::disposer& mutex_disposer, bool is_owner, const std::string& name);
-        static pthread_mutex_t* init_local_mutex(azul::ipc::shared_memory& memory, azul::utils::disposer& disposer);
-        static int open_file(std::string const& name, bool const is_owner, azul::utils::disposer& disposer);
+        static pthread_mutex_t* CreateLocalMutex(azul::ipc::SharedMemory& mutex_memory, azul::utils::Disposer& mutex_disposer, bool isOwner, const std::string& name);
+        static pthread_mutex_t* InitLocalMutex(azul::ipc::SharedMemory& memory, azul::utils::Disposer& disposer);
+        static int OpenFile(std::string const& name, bool const isOwner, azul::utils::Disposer& disposer);
 
     public:
-        robust_mutex(std::string const& name, bool const is_owner)
+        RobustMutex(std::string const& name, bool const isOwner)
         {
-            const auto local_mutex_name = name + "_mutex_memory_" + std::to_string(getpid());
-            mutex_ = create_local_mutex(mutex_memory_, mutex_disposer_, is_owner, local_mutex_name);
-            file_ = open_file(name + "_mutex", is_owner, file_disposer_);
+            const auto local_mutex_name = name + "__mutexMemory" + std::to_string(getpid());
+            _mutex = CreateLocalMutex(_mutexMemory, _mutexDisposer, isOwner, local_mutex_name);
+            file_ = OpenFile(name + "_mutex", isOwner, file_disposer_);
         }
 
         void lock()
         {
-            if (pthread_mutex_lock(mutex_) == EDEADLK)
+            if (pthread_mutex_lock(_mutex) == EDEADLK)
             {
                 throw std::runtime_error("pthread_mutex_lock failed (EDEADLK), check your implementation");
             }
@@ -61,7 +61,7 @@ namespace
 
         bool try_lock()
         {
-            const auto mutex_result = pthread_mutex_trylock(mutex_);
+            const auto mutex_result = pthread_mutex_trylock(_mutex);
             if (mutex_result == EBUSY)
             {
                 return false;
@@ -89,7 +89,7 @@ namespace
                 throw std::runtime_error("flock failed with error " + std::to_string(result));
             }
 
-            if (pthread_mutex_unlock(mutex_) == EPERM)
+            if (pthread_mutex_unlock(_mutex) == EPERM)
             {
                 throw std::runtime_error("pthread_mutex_unlock failed, lock not owned by this thread");
             }
@@ -97,33 +97,33 @@ namespace
     };
 }
 
-pthread_mutex_t* robust_mutex::create_local_mutex(azul::ipc::shared_memory& mutex_memory, azul::utils::disposer& mutex_disposer,
-    bool is_owner, const std::string& name)
+pthread_mutex_t* RobustMutex::CreateLocalMutex(azul::ipc::SharedMemory& mutex_memory, azul::utils::Disposer& mutex_disposer,
+    bool isOwner, const std::string& name)
 {
     try
     {
-        mutex_memory = azul::ipc::shared_memory(name + "_mutex_memory_" + std::to_string(getpid()), sizeof(pthread_mutex_t), is_owner);
-    } catch(const azul::ipc::detail::resource_missing_error&) {
+        mutex_memory = azul::ipc::SharedMemory(name + "__mutexMemory" + std::to_string(getpid()), sizeof(pthread_mutex_t), isOwner);
+    } catch(const azul::ipc::detail::ResourceMissingError&) {
         // in this case the flock mutex has already been created within another process
         // but the posix mutex we use to synchronize between threads within another process has not
-        // therefore we internally need to behave here for the local mutex as if we would one this robust_mutex
-        is_owner = true;
-        mutex_memory = azul::ipc::shared_memory(name + "_mutex_memory_" + std::to_string(getpid()), sizeof(pthread_mutex_t), is_owner);
+        // therefore we internally need to behave here for the local mutex as if we would one this RobustMutex
+        isOwner = true;
+        mutex_memory = azul::ipc::SharedMemory(name + "__mutexMemory" + std::to_string(getpid()), sizeof(pthread_mutex_t), isOwner);
     }
 
-    if (is_owner)
+    if (isOwner)
     {
-        return init_local_mutex(mutex_memory, mutex_disposer);
+        return InitLocalMutex(mutex_memory, mutex_disposer);
     }
     else
     {
-        return reinterpret_cast<pthread_mutex_t*>(mutex_memory.address());
+        return reinterpret_cast<pthread_mutex_t*>(mutex_memory.Address());
     }
 }
 
-pthread_mutex_t* robust_mutex::init_local_mutex(azul::ipc::shared_memory& memory, azul::utils::disposer& disposer)
+pthread_mutex_t* RobustMutex::InitLocalMutex(azul::ipc::SharedMemory& memory, azul::utils::Disposer& disposer)
 {
-    auto *mutex = reinterpret_cast<pthread_mutex_t*>(memory.address());
+    auto *mutex = reinterpret_cast<pthread_mutex_t*>(memory.Address());
 
     pthread_mutexattr_t attributes;
     pthread_mutexattr_init(&attributes);
@@ -138,19 +138,19 @@ pthread_mutex_t* robust_mutex::init_local_mutex(azul::ipc::shared_memory& memory
         throw std::runtime_error("pthread_mutex_init failed, error: " + std::to_string(result));
     }
 
-    disposer.set([mutex]() mutable {
+    disposer.Set([mutex]() mutable {
         pthread_mutex_destroy(mutex);
     });
 
     return mutex;
 }
 
-int robust_mutex::open_file(std::string const& name, bool const is_owner, azul::utils::disposer& disposer)
+int RobustMutex::OpenFile(std::string const& name, bool const isOwner, azul::utils::Disposer& disposer)
 {
     const std::string file_path("/tmp/mutex_" + name + ".lock");
     
     struct stat buffer;
-    if (is_owner && stat(file_path.c_str(), &buffer) != 0)
+    if (isOwner && stat(file_path.c_str(), &buffer) != 0)
     {
         std::ofstream output_stream(file_path, std::ios::binary);
         output_stream.close();
@@ -162,7 +162,7 @@ int robust_mutex::open_file(std::string const& name, bool const is_owner, azul::
         throw std::runtime_error("fopen failed with error " + std::to_string(errno));
     }
 
-    azul::utils::disposer file_handle_disposer([file_handle](){
+    azul::utils::Disposer file_handle_disposer([file_handle](){
         const auto result = std::fclose(file_handle);
         if (result != 0)
         {
@@ -177,48 +177,48 @@ int robust_mutex::open_file(std::string const& name, bool const is_owner, azul::
 
 // -----------------------------------------------------------------------------------------------------
 
-azul::ipc::sync::robust_mutex::robust_mutex(std::string const& name, bool const is_owner)
-    : impl_(std::make_unique<::robust_mutex>(name, is_owner))
+azul::ipc::sync::RobustMutex::RobustMutex(std::string const& name, bool const isOwner)
+    : _impl(std::make_unique<::RobustMutex>(name, isOwner))
 {
 }
 
-azul::ipc::sync::robust_mutex::robust_mutex() : impl_(nullptr)
+azul::ipc::sync::RobustMutex::RobustMutex() : _impl(nullptr)
 {
 }
 
-azul::ipc::sync::robust_mutex::~robust_mutex()
+azul::ipc::sync::RobustMutex::~RobustMutex()
 {
 }
 
-void azul::ipc::sync::robust_mutex::lock()
+void azul::ipc::sync::RobustMutex::lock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     instance->lock();
 }
 
-bool azul::ipc::sync::robust_mutex::try_lock()
+bool azul::ipc::sync::RobustMutex::try_lock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     return instance->try_lock();
 }
 
-void azul::ipc::sync::robust_mutex::unlock()
+void azul::ipc::sync::RobustMutex::unlock()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::robust_mutex *const instance = reinterpret_cast<::robust_mutex*>(impl_.get());
+    ::RobustMutex *const instance = reinterpret_cast<::RobustMutex*>(_impl.get());
     instance->unlock();
 }

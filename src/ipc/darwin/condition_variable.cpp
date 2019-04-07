@@ -21,70 +21,70 @@
 // http://cgi.di.uoa.gr/~ad/k22/named-pipes.pdf
 
 namespace {
-    constexpr int THREAD_QUEUE_STORAGE_SIZE = 128 * 1024;
+    constexpr int _threadQueueSTORAGE_SIZE = 128 * 1024;
     constexpr int FIFO_SYNC_MESSAGE = 0x12345678;
 
 
-    class condition_variable
+    class ConditionVariable
     {
     private:
-        azul::ipc::shared_memory thread_queue_memory_;
-        azul::ipc::detail::queue<std::thread::id> thread_queue_;
-        azul::ipc::sync::robust_mutex thread_queue_mutex_;
+        azul::ipc::SharedMemory _threadQueueMemory;
+        azul::ipc::detail::Queue<std::thread::id> _threadQueue;
+        azul::ipc::sync::RobustMutex _threadQueueMutex;
         std::string const name_;
 
-        static std::shared_ptr<::azul::ipc::detail::fifo> get_fifo(std::string const& name, std::thread::id const& thread_id, bool const is_owner)
+        static std::shared_ptr<::azul::ipc::detail::FiFo> GetFiFo(std::string const& name, std::thread::id const& thread_id, bool const isOwner)
         {
             std::stringstream memory_stream;
             memory_stream << thread_id;
             const auto full_name = name + "_" + memory_stream.str();
-            const auto fifo = std::make_shared<::azul::ipc::detail::fifo>(full_name, is_owner);
+            const auto fifo = std::make_shared<::azul::ipc::detail::FiFo>(full_name, isOwner);
             return fifo;
         }
 
     public:
-        explicit condition_variable(std::string const& name, bool const is_owner)
-            : thread_queue_memory_(name + "_threadqueue", THREAD_QUEUE_STORAGE_SIZE, is_owner)
-            , thread_queue_(thread_queue_memory_.address(), THREAD_QUEUE_STORAGE_SIZE, is_owner)
-            , thread_queue_mutex_(name + "_threadqueu", is_owner)
+        explicit ConditionVariable(std::string const& name, bool const isOwner)
+            : _threadQueueMemory(name + "_threadqueue", _threadQueueSTORAGE_SIZE, isOwner)
+            , _threadQueue(_threadQueueMemory.Address(), _threadQueueSTORAGE_SIZE, isOwner)
+            , _threadQueueMutex(name + "_threadqueu", isOwner)
             , name_(name)
         {
 
         }
 
-        void notify_one()
+        void NotifyOne()
         {
-            std::unique_lock<azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
 
-            if (thread_queue_.count() > 0)
+            if (_threadQueue.Count() > 0)
             {
-                auto const waiting_thread_id = thread_queue_.front();
-                thread_queue_.pop();
+                auto const waiting_thread_id = _threadQueue.Front();
+                _threadQueue.Pop();
 
-                auto fifo = get_fifo(name_, waiting_thread_id, false);
-                fifo->write(reinterpret_cast<const char*>(&FIFO_SYNC_MESSAGE), sizeof(FIFO_SYNC_MESSAGE));
+                auto fifo = GetFiFo(name_, waiting_thread_id, false);
+                fifo->Write(reinterpret_cast<const char*>(&FIFO_SYNC_MESSAGE), sizeof(FIFO_SYNC_MESSAGE));
             }
         }
 
-        void notify_all()
+        void NotifyAll()
         {
-            std::unique_lock<azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
-            while (thread_queue_.count() > 0)
+            std::unique_lock<azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
+            while (_threadQueue.Count() > 0)
             {
-                auto const waiting_thread_id = thread_queue_.front();
-                thread_queue_.pop();
-                auto fifo = get_fifo(name_, waiting_thread_id, false);
-                fifo->write(reinterpret_cast<const char*>(&FIFO_SYNC_MESSAGE), sizeof(FIFO_SYNC_MESSAGE));
+                auto const waitingThreadId = _threadQueue.Front();
+                _threadQueue.Pop();
+                auto fifo = GetFiFo(name_, waitingThreadId, false);
+                fifo->Write(reinterpret_cast<const char*>(&FIFO_SYNC_MESSAGE), sizeof(FIFO_SYNC_MESSAGE));
             }
         }
 
-        void wait(std::unique_lock<::azul::ipc::sync::robust_mutex>& mutex)
+        void Wait(std::unique_lock<::azul::ipc::sync::RobustMutex>& mutex)
         {
-            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
             const auto current_thread_id = std::this_thread::get_id();
-            const auto fifo = get_fifo(name_, current_thread_id, true);
+            const auto fifo = GetFiFo(name_, current_thread_id, true);
 
-            thread_queue_.push_back(current_thread_id);
+            _threadQueue.PushBack(current_thread_id);
 
             mutex.unlock();
             lock.unlock();
@@ -93,20 +93,20 @@ namespace {
             int toRead = static_cast<int>(sizeof(FIFO_SYNC_MESSAGE));
             while (toRead > 0)
             {
-                toRead -= static_cast<int>(fifo->read(buffer, static_cast<std::size_t>(toRead)));
+                toRead -= static_cast<int>(fifo->Read(buffer, static_cast<std::size_t>(toRead)));
             }
 
             lock.lock();
             mutex.lock();
         }
 
-        std::cv_status wait_for(std::unique_lock<::azul::ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
+        std::cv_status WaitFor(std::unique_lock<::azul::ipc::sync::RobustMutex>& mutex, std::chrono::milliseconds const& timeout)
         {
-            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
             const auto current_thread_id = std::this_thread::get_id();
-            const auto fifo = get_fifo(name_, current_thread_id, true);
+            const auto fifo = GetFiFo(name_, current_thread_id, true);
 
-            thread_queue_.push_back(current_thread_id);
+            _threadQueue.PushBack(current_thread_id);
 
             char buffer[sizeof(FIFO_SYNC_MESSAGE)];
             int toRead = static_cast<int>(sizeof(FIFO_SYNC_MESSAGE));
@@ -115,7 +115,7 @@ namespace {
                 mutex.unlock();
                 lock.unlock();
 
-                const auto result = fifo->timed_read(buffer, static_cast<std::size_t>(toRead), static_cast<std::uint32_t>(timeout.count()));
+                const auto result = fifo->TimedRead(buffer, static_cast<std::size_t>(toRead), static_cast<std::uint32_t>(timeout.count()));
 
                 lock.lock();
                 mutex.lock();
@@ -137,59 +137,59 @@ namespace {
 
 // -----------------------------------------------------------------------------------------------------
 
-azul::ipc::sync::condition_variable::condition_variable(std::string const& name, bool const is_owner)
-    : impl_(std::make_unique<::condition_variable>(name, is_owner))
+azul::ipc::sync::ConditionVariable::ConditionVariable(std::string const& name, bool const isOwner)
+    : _impl(std::make_unique<::ConditionVariable>(name, isOwner))
 {
 }
 
-azul::ipc::sync::condition_variable::condition_variable() : impl_(nullptr)
+azul::ipc::sync::ConditionVariable::ConditionVariable() : _impl(nullptr)
 {
 }
 
-azul::ipc::sync::condition_variable::~condition_variable()
+azul::ipc::sync::ConditionVariable::~ConditionVariable()
 {
 }
 
-void azul::ipc::sync::condition_variable::notify_one()
+void azul::ipc::sync::ConditionVariable::NotifyOne()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->notify_one();
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->NotifyOne();
 }
 
-void azul::ipc::sync::condition_variable::notify_all()
+void azul::ipc::sync::ConditionVariable::NotifyAll()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->notify_all();
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->NotifyAll();
 }
 
-void azul::ipc::sync::condition_variable::wait(std::unique_lock<ipc::sync::robust_mutex>& mutex)
+void azul::ipc::sync::ConditionVariable::Wait(std::unique_lock<ipc::sync::RobustMutex>& mutex)
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->wait(mutex);
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->Wait(mutex);
 }
 
-std::cv_status azul::ipc::sync::condition_variable::wait_for(std::unique_lock<ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
+std::cv_status azul::ipc::sync::ConditionVariable::WaitFor(std::unique_lock<ipc::sync::RobustMutex>& mutex, std::chrono::milliseconds const& timeout)
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    return instance->wait_for(mutex, timeout);
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    return instance->WaitFor(mutex, timeout);
 }

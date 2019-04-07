@@ -9,17 +9,17 @@
 
 namespace
 {
-    class condition_variable final
+    class ConditionVariable final
     {
     private:
-        static timespec get_absolute_time(std::chrono::milliseconds timeout)
+        static timespec getAbsoluteTime(std::chrono::milliseconds timeout)
         {
             struct timespec time;
             timespec_get(&time, TIME_UTC);
 
-            auto additional_seconds = timeout.count() / 1000;
-            timeout -= std::chrono::milliseconds(additional_seconds * 1000);
-            time.tv_sec += additional_seconds;
+            auto additionalSeconds = timeout.count() / 1000;
+            timeout -= std::chrono::milliseconds(additionalSeconds * 1000);
+            time.tv_sec += additionalSeconds;
             time.tv_nsec += timeout.count() * 1000000;
 
             if (time.tv_nsec > 1000000000)
@@ -31,25 +31,25 @@ namespace
             return time;
         }
 
-        ::azul::ipc::shared_memory cond_memory_;
-        ::azul::utils::disposer cond_disposer_;
-        pthread_cond_t* const handle_;
+        ::azul::ipc::SharedMemory _conditionMemory;
+        ::azul::utils::Disposer _conditionDisposer;
+        pthread_cond_t* const _handle;
 
     public:
-        explicit condition_variable(std::string const& name, bool const is_owner)
-            : cond_memory_(std::string("ipc_cond_") + name, sizeof(pthread_cond_t), is_owner),
-            handle_(reinterpret_cast<pthread_cond_t*>(cond_memory_.address()))
+        explicit ConditionVariable(std::string const& name, bool const isOwner)
+            : _conditionMemory(std::string("ipc_cond_") + name, sizeof(pthread_cond_t), isOwner),
+            _handle(reinterpret_cast<pthread_cond_t*>(_conditionMemory.Address()))
         {
-            if (is_owner)
+            if (isOwner)
             {
-                new (handle_) pthread_cond_t();
+                new (_handle) pthread_cond_t();
 
                 pthread_condattr_t attributes;
                 pthread_condattr_init(&attributes);
                 pthread_condattr_setpshared(&attributes, PTHREAD_PROCESS_SHARED);
                 pthread_condattr_setclock(&attributes, CLOCK_REALTIME);
 
-                const auto result = pthread_cond_init(handle_, &attributes);
+                const auto result = pthread_cond_init(_handle, &attributes);
                 pthread_condattr_destroy(&attributes);
 
                 if (result != 0)
@@ -57,33 +57,33 @@ namespace
                     throw std::runtime_error("pthread_cond init failed, error: " + std::to_string(result));
                 }
 
-                cond_disposer_.set([=]() { pthread_cond_destroy(handle_); });
+                _conditionDisposer.Set([=]() { pthread_cond_destroy(_handle); });
             }
         }
 
-        void notify_one()
+        void NotifyOne()
         {
-            pthread_cond_signal(handle_);
+            pthread_cond_signal(_handle);
         }
 
-        void notify_all()
+        void NotifyAll()
         {
-            pthread_cond_broadcast(handle_);
+            pthread_cond_broadcast(_handle);
         }
 
-        void wait(pthread_mutex_t *const mutex)
+        void Wait(pthread_mutex_t *const mutex)
         {
-            const auto result = pthread_cond_wait(handle_, mutex);
+            const auto result = pthread_cond_wait(_handle, mutex);
             if (result == EINVAL)
             {
                 throw std::runtime_error("pthread_cond_wait failed, error: " + std::to_string(result));
             }
         }
 
-        std::cv_status wait_for(pthread_mutex_t *const mutex, std::chrono::milliseconds const& timeout)
+        std::cv_status WaitFor(pthread_mutex_t *const mutex, std::chrono::milliseconds const& timeout)
         {
-            timespec deadline = get_absolute_time(timeout);
-            const auto result = pthread_cond_timedwait(handle_, mutex, &deadline);
+            timespec deadline = getAbsoluteTime(timeout);
+            const auto result = pthread_cond_timedwait(_handle, mutex, &deadline);
             if (result == 0)
             {
                 return std::cv_status::no_timeout;
@@ -101,61 +101,61 @@ namespace
 
 // -----------------------------------------------------------------------------------------------------
 
-azul::ipc::sync::condition_variable::condition_variable(std::string const& name, bool const is_owner)
-    : impl_(std::make_unique<::condition_variable>(name, is_owner))
+azul::ipc::sync::ConditionVariable::ConditionVariable(std::string const& name, bool const isOwner)
+    : _impl(std::make_unique<::ConditionVariable>(name, isOwner))
 {
 }
 
-azul::ipc::sync::condition_variable::condition_variable() : impl_(nullptr)
+azul::ipc::sync::ConditionVariable::ConditionVariable() : _impl(nullptr)
 {
 }
 
-azul::ipc::sync::condition_variable::~condition_variable()
+azul::ipc::sync::ConditionVariable::~ConditionVariable()
 {
 }
 
-void azul::ipc::sync::condition_variable::notify_one()
+void azul::ipc::sync::ConditionVariable::NotifyOne()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->notify_one();
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->NotifyOne();
 }
 
-void azul::ipc::sync::condition_variable::notify_all()
+void azul::ipc::sync::ConditionVariable::NotifyAll()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->notify_all();
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->NotifyAll();
 }
 
-void azul::ipc::sync::condition_variable::wait(std::unique_lock<ipc::sync::robust_mutex>& mutex)
+void azul::ipc::sync::ConditionVariable::Wait(std::unique_lock<ipc::sync::RobustMutex>& mutex)
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    ::robust_mutex *const mutex_instance = reinterpret_cast<::robust_mutex*>(mutex.mutex()->impl_.get());
-    instance->wait(mutex_instance->handle_);
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    ::RobustMutex *const mutex_instance = reinterpret_cast<::RobustMutex*>(mutex.mutex()->_impl.get());
+    instance->Wait(mutex_instance->_handle);
 }
 
-std::cv_status azul::ipc::sync::condition_variable::wait_for(std::unique_lock<ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
+std::cv_status azul::ipc::sync::ConditionVariable::WaitFor(std::unique_lock<ipc::sync::RobustMutex>& mutex, std::chrono::milliseconds const& timeout)
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    ::robust_mutex *const mutex_instance = reinterpret_cast<::robust_mutex*>(mutex.mutex()->impl_.get());
-    return instance->wait_for(mutex_instance->handle_, timeout);
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    ::RobustMutex *const mutex_instance = reinterpret_cast<::RobustMutex*>(mutex.mutex()->_impl.get());
+    return instance->WaitFor(mutex_instance->_handle, timeout);
 }

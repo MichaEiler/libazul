@@ -17,30 +17,30 @@ namespace azul
     {
         namespace detail
         {
-            class fifo
+            class FiFo
             {
             private:
-                azul::utils::disposer fifo_disposer_;
-                int fifo_descriptor_;
+                azul::utils::Disposer _fifoDisposer;
+                int _fifoDescriptor;
 
-                static int create_or_open_fifo(std::string const& path, bool const is_owner, azul::utils::disposer& disposer);
+                static int CreateOrOpenFiFo(std::string const& path, bool const isOwner, azul::utils::Disposer& disposer);
             public:
-                explicit fifo(std::string const& name, bool const is_owner)
-                    : fifo_disposer_()
-                    , fifo_descriptor_(create_or_open_fifo(std::string("/tmp/azul_fifo_") + name, is_owner, fifo_disposer_))
+                explicit FiFo(std::string const& name, bool const isOwner)
+                    : _fifoDisposer()
+                    , _fifoDescriptor(CreateOrOpenFiFo(std::string("/tmp/azul_fifo_") + name, isOwner, _fifoDisposer))
                 {
 
                 }
 
-                void write(char const *const buffer, std::size_t buffer_size)
+                void Write(char const *const buffer, std::size_t buffer_size)
                 {
-                    ::write(fifo_descriptor_, buffer, buffer_size);
+                    ::write(_fifoDescriptor, buffer, buffer_size);
                 }
 
-                std::size_t read(char *const buffer, std::size_t buffer_size)
+                std::size_t Read(char *const buffer, std::size_t buffer_size)
                 {
                     struct pollfd poll_details{};
-                    poll_details.fd = fifo_descriptor_;
+                    poll_details.fd = _fifoDescriptor;
                     poll_details.events = POLLIN;
 
 		            int result = 0;
@@ -50,7 +50,7 @@ namespace azul
                         throw std::runtime_error(std::string("Unexpected error while polling: ") + std::to_string(errno));
                     }
 
-                    result = ::read(fifo_descriptor_, buffer, buffer_size);
+                    result = ::read(_fifoDescriptor, buffer, buffer_size);
                     if (result < 0)
                     {
                         throw std::runtime_error(std::string("Unexpected error while reading from fifo: ") + std::to_string(errno));
@@ -58,10 +58,10 @@ namespace azul
                     return static_cast<std::size_t>(result);
                 }
 
-                ssize_t timed_read(char *const buffer, std::size_t buffer_size, std::uint32_t timeout_ms)
+                ssize_t TimedRead(char *const buffer, std::size_t buffer_size, std::uint32_t timeout_ms)
                 {
                     struct pollfd poll_details{};
-                    poll_details.fd = fifo_descriptor_;
+                    poll_details.fd = _fifoDescriptor;
                     poll_details.events = POLLIN;
                     
                     const auto result = poll(&poll_details, 1, static_cast<int>(timeout_ms));
@@ -75,16 +75,16 @@ namespace azul
                         return -1;
                     }
 
-                    return read(buffer, buffer_size);
+                    return Read(buffer, buffer_size);
                 }
             };
         }
     }
 }
 
-int azul::ipc::detail::fifo::create_or_open_fifo(std::string const& path, bool const is_owner, azul::utils::disposer& disposer)
+int azul::ipc::detail::FiFo::CreateOrOpenFiFo(std::string const& path, bool const isOwner, azul::utils::Disposer& disposer)
 {
-    if (is_owner)
+    if (isOwner)
     {
         const auto result = mkfifo(path.c_str(), S_IRUSR | S_IWUSR);
         if (result != 0 && errno == EDQUOT)
@@ -102,9 +102,9 @@ int azul::ipc::detail::fifo::create_or_open_fifo(std::string const& path, bool c
     if (fd < 0)
        throw std::runtime_error("open of fifo failed: " + std::to_string(errno));
 
-    disposer.set([fd, path, is_owner](){
+    disposer.Set([fd, path, isOwner](){
         close(fd);
-        if (is_owner)
+        if (isOwner)
         {
             remove(path.c_str());
         }

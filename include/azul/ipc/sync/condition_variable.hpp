@@ -13,25 +13,25 @@ namespace azul
     {
         namespace sync
         {
-            class condition_variable final
+            class ConditionVariable final
             {
             public:
-                explicit condition_variable(std::string const& name, bool const is_owner);
-                condition_variable();
-                ~condition_variable();
+                explicit ConditionVariable(std::string const& name, bool const isOwner);
+                ConditionVariable();
+                ~ConditionVariable();
 
-                void notify_one();
-                void notify_all();
-                void wait(std::unique_lock<azul::ipc::sync::robust_mutex>& mutex);
-                std::cv_status wait_for(std::unique_lock<azul::ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout);
+                void NotifyOne();
+                void NotifyAll();
+                void Wait(std::unique_lock<azul::ipc::sync::RobustMutex>& mutex);
+                std::cv_status WaitFor(std::unique_lock<azul::ipc::sync::RobustMutex>& mutex, std::chrono::milliseconds const& timeout);
 
-                condition_variable(condition_variable const&) = delete;
-                condition_variable operator=(condition_variable const&) = delete;
-                condition_variable(condition_variable &&) = default;
-                condition_variable& operator=(condition_variable &&) = default;
+                ConditionVariable(ConditionVariable const&) = delete;
+                ConditionVariable operator=(ConditionVariable const&) = delete;
+                ConditionVariable(ConditionVariable &&) = default;
+                ConditionVariable& operator=(ConditionVariable &&) = default;
 
             private:
-                std::shared_ptr<void> impl_;
+                std::shared_ptr<void> _impl;
             };
         }
     }

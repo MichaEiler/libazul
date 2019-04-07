@@ -8,23 +8,23 @@ namespace azul
 {
     namespace ipc
     {
-        class shared_memory final
+        class SharedMemory final
         {
         public:
-            explicit shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner);
-            shared_memory();
-            ~shared_memory();
+            explicit SharedMemory(std::string const& name, std::size_t const size, bool const is_owner);
+            SharedMemory();
+            ~SharedMemory();
 
-            void* address() const;
-            std::uint64_t size() const;
+            void* Address() const;
+            std::size_t Size() const;
 
-            shared_memory& operator=(shared_memory const&) = delete;
-            shared_memory(shared_memory const&) = delete;
-            shared_memory& operator=(shared_memory&&) = default;
-            shared_memory(shared_memory&&) = default;
+            SharedMemory& operator=(SharedMemory const&) = delete;
+            SharedMemory(SharedMemory const&) = delete;
+            SharedMemory& operator=(SharedMemory&&) = default;
+            SharedMemory(SharedMemory&&) = default;
 
         private:
-            std::shared_ptr<void> impl_;
+            std::shared_ptr<void> _impl;
         };
     }
 }

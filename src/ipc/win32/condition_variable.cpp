@@ -11,79 +11,79 @@
 
 namespace
 {
-    constexpr int THREAD_QUEUE_STORAGE_SIZE = 128 * 1024;
+    constexpr int _threadQueueSTORAGE_SIZE = 128 * 1024;
 
-    class condition_variable final
+    class ConditionVariable final
     {
     private:
-        std::unordered_map<std::thread::id, HANDLE> semaphores_;
-        ::azul::ipc::shared_memory thread_queue_memory_;
-        azul::ipc::detail::queue<std::thread::id> thread_queue_;
-        ::azul::ipc::sync::robust_mutex thread_queue_mutex_;
-        std::string const name_;
+        std::unordered_map<std::thread::id, HANDLE> _semaphores;
+        ::azul::ipc::shared_memory _threadQueueMemory;
+        azul::ipc::detail::queue<std::thread::id> _threadQueue;
+        ::azul::ipc::sync::robust_mutex _threadQueueMutex;
+        std::string const _name;
 
-        HANDLE get_semaphore(std::thread::id const& thread_id)
+        HANDLE GetSemaphore(std::thread::id const& _threadId)
         {
-            if (semaphores_.find(thread_id) == semaphores_.end())
+            if (_semaphores.find(_threadId) == _semaphores.end())
             {
                 std::stringstream stream;
-                stream << thread_id;
+                stream << _threadId;
 
-                const std::string semaphore_name = name_ + stream.str();
-                const auto semaphore_handle = CreateSemaphoreA(nullptr, 0, 1, semaphore_name.c_str());
-                if (semaphore_handle == nullptr)
+                const std::string semaphore_name = _name + stream.str();
+                const auto semaphoreHandle = CreateSemaphoreA(nullptr, 0, 1, semaphore_name.c_str());
+                if (semaphoreHandle == nullptr)
                 {
                     throw std::runtime_error("CreateSemaphoreA failed, error: " + std::to_string(GetLastError()));
                 }
 
-                semaphores_[thread_id] = semaphore_handle;
-                return semaphore_handle;
+                _semaphores[_threadId] = semaphoreHandle;
+                return semaphoreHandle;
             }
 
-            auto semaphore_handle = semaphores_[thread_id];
-            WaitForSingleObject(semaphore_handle, 0); // reset
-            return semaphore_handle;
+            auto semaphoreHandle = _semaphores[_threadId];
+            WaitForSingleObject(semaphoreHandle, 0); // reset
+            return semaphoreHandle;
         }
 
     public:
-        explicit condition_variable(std::string const& name, bool const is_owner)
-            : thread_queue_memory_(name + std::string("_thread_queue"), THREAD_QUEUE_STORAGE_SIZE, is_owner),
-              thread_queue_(thread_queue_memory_.address(), THREAD_QUEUE_STORAGE_SIZE, is_owner),
-              thread_queue_mutex_(name + std::string("_cond_mutex"), is_owner),
-              name_(name)
+        explicit ConditionVariable(std::string const& name, bool const isOwner)
+            : _threadQueueMemory(name + std::string("_thread_queue"), _threadQueueSTORAGE_SIZE, isOwner),
+              _threadQueue(_threadQueueMemory.Address(), _threadQueueSTORAGE_SIZE, isOwner),
+              _threadQueueMutex(name + std::string("_cond_mutex"), isOwner),
+              _name(name)
         {
         }
 
-        void notify_one()
+        void NotifyOne()
         {
-            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
 
-            auto id = thread_queue_.front();
-            thread_queue_.pop();
+            auto id = _threadQueue.Front();
+            _threadQueue.Pop();
 
-            ReleaseSemaphore(get_semaphore(id), 1, nullptr);
+            ReleaseSemaphore(GetSemaphore(id), 1, nullptr);
         }
 
-        void notify_all()
+        void NotifyAll()
         {
-            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
 
-            while (thread_queue_.count() > 0)
+            while (_threadQueue.Count() > 0)
             {
-                auto id = thread_queue_.front();
-                thread_queue_.pop();
+                auto id = _threadQueue.Front();
+                _threadQueue.Pop();
 
-                ReleaseSemaphore(get_semaphore(id), 1, nullptr);
+                ReleaseSemaphore(GetSemaphore(id), 1, nullptr);
             }
         }
 
-        void wait(std::unique_lock<::azul::ipc::sync::robust_mutex>& mutex)
+        void Wait(std::unique_lock<::azul::ipc::sync::RobustMutex>& mutex)
         {
-            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
             const auto current_thread_id = std::this_thread::get_id();
-            const auto semaphore = get_semaphore(current_thread_id);
+            const auto semaphore = GetSemaphore(current_thread_id);
 
-            thread_queue_.push_back(current_thread_id);
+            _threadQueue.PushBack(current_thread_id);
 
             mutex.unlock();
             lock.unlock();
@@ -95,18 +95,18 @@ namespace
 
             if (WAIT_FAILED == result)
             {
-                thread_queue_.remove(current_thread_id);
+                _threadQueue.Remove(current_thread_id);
                 throw std::runtime_error("WaitForSingleObject failed, error: " + std::to_string(GetLastError()));
             }
         }
 
-        std::cv_status wait_for(std::unique_lock<::azul::ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
+        std::cv_status WaitFor(std::unique_lock<::azul::ipc::sync::RobustMutex>& mutex, std::chrono::milliseconds const& timeout)
         {
-            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
             const auto current_thread_id = std::this_thread::get_id();
-            const auto semaphore = get_semaphore(current_thread_id);
+            const auto semaphore = GetSemaphore(current_thread_id);
 
-            thread_queue_.push_back(current_thread_id);
+            _threadQueue.PushBack(current_thread_id);
 
             mutex.unlock();
             lock.unlock();
@@ -118,7 +118,7 @@ namespace
 
             if (WAIT_FAILED == result)
             {
-                thread_queue_.remove(current_thread_id);
+                _threadQueue.Remove(current_thread_id);
                 throw std::runtime_error("WaitForSingleObject failed, error: " + std::to_string(GetLastError()));
             }
 
@@ -133,59 +133,59 @@ namespace
 
 // -----------------------------------------------------------------------------------------------------
 
-azul::ipc::sync::condition_variable::condition_variable(std::string const& name, bool const is_owner)
-    : impl_(std::make_unique<::condition_variable>(name, is_owner))
+azul::ipc::sync::ConditionVariable::ConditionVariable(std::string const& name, bool const isOwner)
+    : _impl(std::make_unique<::ConditionVariable>(name, isOwner))
 {
 }
 
-azul::ipc::sync::condition_variable::condition_variable() : impl_(nullptr)
+azul::ipc::sync::ConditionVariable::ConditionVariable() : _impl(nullptr)
 {
 }
 
-azul::ipc::sync::condition_variable::~condition_variable()
+azul::ipc::sync::ConditionVariable::~ConditionVariable()
 {
 }
 
-void azul::ipc::sync::condition_variable::notify_one()
+void azul::ipc::sync::ConditionVariable::NotifyOne()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->notify_one();
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->NotifyOne();
 }
 
-void azul::ipc::sync::condition_variable::notify_all()
+void azul::ipc::sync::ConditionVariable::NotifyAll()
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->notify_all();
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->NotifyAll();
 }
 
-void azul::ipc::sync::condition_variable::wait(std::unique_lock<ipc::sync::robust_mutex>& mutex)
+void azul::ipc::sync::ConditionVariable::Wait(std::unique_lock<ipc::sync::RobustMutex>& mutex)
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    instance->wait(mutex);
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    instance->Wait(mutex);
 }
 
-std::cv_status azul::ipc::sync::condition_variable::wait_for(std::unique_lock<ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
+std::cv_status azul::ipc::sync::ConditionVariable::WaitFor(std::unique_lock<ipc::sync::RobustMutex>& mutex, std::chrono::milliseconds const& timeout)
 {
-    if (!impl_)
+    if (!_impl)
     {
         throw std::runtime_error("Not initialized.");
     }
 
-    ::condition_variable *const instance = reinterpret_cast<::condition_variable*>(impl_.get());
-    return instance->wait_for(mutex, timeout);
+    ::ConditionVariable *const instance = reinterpret_cast<::ConditionVariable*>(_impl.get());
+    return instance->WaitFor(mutex, timeout);
 }

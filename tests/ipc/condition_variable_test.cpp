@@ -6,20 +6,20 @@
 #include <memory>
 #include <thread>
 
-class condition_variable_fixture : public testing::Test
+class ConditionVariableTestFixture : public testing::Test
 {
 };
 
-TEST_F(condition_variable_fixture, signal_singleWaitingThreadWithoutTimeout_threadNotified)
+TEST_F(ConditionVariableTestFixture, Signal_SingleWaitingThreadWithoutTimeout_ThreadNotified)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("76bda1f5", true);
-    auto cond = azul::ipc::sync::condition_variable("57a16bdf", true);
+    auto mutex = azul::ipc::sync::RobustMutex("76bda1f5", true);
+    auto cond = azul::ipc::sync::ConditionVariable("57a16bdf", true);
 
     std::atomic<bool> notification_received(false);
 
     std::thread other_thread([&]() {
-        std::unique_lock<azul::ipc::sync::robust_mutex> lock(mutex);
-        cond.wait(lock);
+        std::unique_lock<azul::ipc::sync::RobustMutex> lock(mutex);
+        cond.Wait(lock);
         notification_received.store(true);
     });
 
@@ -29,7 +29,7 @@ TEST_F(condition_variable_fixture, signal_singleWaitingThreadWithoutTimeout_thre
 
     while (!notification_received.load())
     {
-        cond.notify_one();
+        cond.NotifyOne();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
@@ -38,37 +38,37 @@ TEST_F(condition_variable_fixture, signal_singleWaitingThreadWithoutTimeout_thre
     ASSERT_TRUE(notification_received);
 }
 
-TEST_F(condition_variable_fixture, signal_singleWaitingThreadWithTimeout_doesNotTimeout)
+TEST_F(ConditionVariableTestFixture, Signal_SingleWaitingThreadWithTimeout_DoesNotTimeout)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("7a16bdf5", true);
-    auto cond = azul::ipc::sync::condition_variable("df57a16b", true);
+    auto mutex = azul::ipc::sync::RobustMutex("7a16bdf5", true);
+    auto cond = azul::ipc::sync::ConditionVariable("df57a16b", true);
 
     bool timeout = true;
 
     std::thread other_thread([&mutex, &cond, &timeout]() {
-        std::unique_lock<azul::ipc::sync::robust_mutex> lock(mutex);
-        timeout = cond.wait_for(lock, std::chrono::milliseconds(1000)) == std::cv_status::timeout;
+        std::unique_lock<azul::ipc::sync::RobustMutex> lock(mutex);
+        timeout = cond.WaitFor(lock, std::chrono::milliseconds(1000)) == std::cv_status::timeout;
     });
 
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
-    cond.notify_one();
+    cond.NotifyOne();
     other_thread.join();
 
     ASSERT_FALSE(timeout);
 }
 
-TEST_F(condition_variable_fixture, signal_twoWaitingThreadsWithTimeouts_oneThreadNotified)
+TEST_F(ConditionVariableTestFixture, Signal_TwoWaitingThreadsWithTimeouts_OneThreadNotified)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("76bda1f5", true);
-    auto cond = azul::ipc::sync::condition_variable("57a16bdf", true);
+    auto mutex = azul::ipc::sync::RobustMutex("76bda1f5", true);
+    auto cond = azul::ipc::sync::ConditionVariable("57a16bdf", true);
 
     std::atomic<int> timeouts_occured(0);
     std::atomic<int> notifications_received(0);
 
     const auto task = [&mutex, &timeouts_occured, &notifications_received, &cond]() {
-        std::unique_lock<azul::ipc::sync::robust_mutex> lock(mutex);
-        bool notified = cond.wait_for(lock, std::chrono::milliseconds(500)) != std::cv_status::timeout;
+        std::unique_lock<azul::ipc::sync::RobustMutex> lock(mutex);
+        bool notified = cond.WaitFor(lock, std::chrono::milliseconds(500)) != std::cv_status::timeout;
 
         if (notified)
         {
@@ -88,7 +88,7 @@ TEST_F(condition_variable_fixture, signal_twoWaitingThreadsWithTimeouts_oneThrea
     ASSERT_EQ(0, notifications_received.load());
     ASSERT_EQ(0, timeouts_occured.load());
 
-    cond.notify_one();
+    cond.NotifyOne();
 
     waiting_thread1.join();
     waiting_thread2.join();
@@ -97,17 +97,17 @@ TEST_F(condition_variable_fixture, signal_twoWaitingThreadsWithTimeouts_oneThrea
     ASSERT_EQ(1, timeouts_occured);
 }
 
-TEST_F(condition_variable_fixture, broadcast_twoWaitingThreadsWithTimeouts_bothThreadsNotified)
+TEST_F(ConditionVariableTestFixture, Broadcast_TwoWaitingThreadsWithTimeouts_BothThreadsNotified)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("76bda1f5", true);
-    auto cond = azul::ipc::sync::condition_variable("57a16bdf", true);
+    auto mutex = azul::ipc::sync::RobustMutex("76bda1f5", true);
+    auto cond = azul::ipc::sync::ConditionVariable("57a16bdf", true);
 
     std::atomic<int> timeouts_occured(0);
     std::atomic<int> notifications_received(0);
 
     const auto task = [&mutex, &timeouts_occured, &notifications_received, &cond]() {
-        std::unique_lock<azul::ipc::sync::robust_mutex> lock(mutex);
-        bool notified = cond.wait_for(lock, std::chrono::milliseconds(500)) != std::cv_status::timeout;
+        std::unique_lock<azul::ipc::sync::RobustMutex> lock(mutex);
+        bool notified = cond.WaitFor(lock, std::chrono::milliseconds(500)) != std::cv_status::timeout;
 
         if (notified)
         {
@@ -127,7 +127,7 @@ TEST_F(condition_variable_fixture, broadcast_twoWaitingThreadsWithTimeouts_bothT
     ASSERT_EQ(0, notifications_received.load());
     ASSERT_EQ(0, timeouts_occured.load());
 
-    cond.notify_all();
+    cond.NotifyAll();
 
     waiting_thread1.join();
     waiting_thread2.join();

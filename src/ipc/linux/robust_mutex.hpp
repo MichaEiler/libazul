@@ -14,22 +14,22 @@
 
 namespace
 {
-    class robust_mutex final
+    class RobustMutex final
     {
     private:
-        ::azul::ipc::shared_memory mutex_memory_;
-        ::azul::utils::disposer mutex_disposer_;
-        pthread_mutex_t *const handle_ = nullptr;
+        ::azul::ipc::SharedMemory _mutexMemory;
+        ::azul::utils::Disposer _mutexDisposer;
+        pthread_mutex_t *const _handle = nullptr;
 
-        friend class ::azul::ipc::sync::condition_variable;
+        friend class ::azul::ipc::sync::ConditionVariable;
     public:
-        explicit robust_mutex(std::string const& name, bool const is_owner)
-            : mutex_memory_(std::string("ipc_mutex_") + name, sizeof(pthread_mutex_t), is_owner),
-                handle_(reinterpret_cast<pthread_mutex_t*>(mutex_memory_.address()))
+        explicit RobustMutex(std::string const& name, bool const isOwner)
+            : _mutexMemory(std::string("ipc_mutex_") + name, sizeof(pthread_mutex_t), isOwner)
+            , _handle(reinterpret_cast<pthread_mutex_t*>(_mutexMemory.Address()))
         {
-            if (is_owner)
+            if (isOwner)
             {
-                new (handle_) pthread_mutex_t();
+                new (_handle) pthread_mutex_t();
 
                 pthread_mutexattr_t attributes;
                 pthread_mutexattr_init(&attributes);
@@ -37,7 +37,7 @@ namespace
                 pthread_mutexattr_setpshared(&attributes, PTHREAD_PROCESS_SHARED);
                 pthread_mutexattr_settype(&attributes, PTHREAD_MUTEX_ERRORCHECK);
 
-                auto const result = pthread_mutex_init(handle_, &attributes);
+                auto const result = pthread_mutex_init(_handle, &attributes);
                 pthread_mutexattr_destroy(&attributes);
 
                 if (result != 0)
@@ -45,8 +45,8 @@ namespace
                     throw std::runtime_error("pthread_mutex_init failed, error: " + std::to_string(result));
                 }
 
-                mutex_disposer_.set([is_owner, handle = handle_]() {
-                    if (is_owner)
+                _mutexDisposer.Set([isOwner, handle = _handle]() {
+                    if (isOwner)
                     {
                         pthread_mutex_destroy(handle);
                     }
@@ -56,7 +56,7 @@ namespace
 
         void lock()
         {
-            const auto result = pthread_mutex_lock(handle_);
+            const auto result = pthread_mutex_lock(_handle);
 
             if (result == EDEADLK)
             {
@@ -65,7 +65,7 @@ namespace
 
             if (result == EOWNERDEAD)
             {
-                pthread_mutex_consistent(handle_);
+                pthread_mutex_consistent(_handle);
             }
 
             if (result != 0 && result != EOWNERDEAD)
@@ -76,7 +76,7 @@ namespace
 
         bool try_lock()
         {
-            const auto result = pthread_mutex_trylock(handle_);
+            const auto result = pthread_mutex_trylock(_handle);
 
             if (result == EDEADLK)
             {
@@ -93,7 +93,7 @@ namespace
 
         void unlock()
         {
-            const auto result = pthread_mutex_unlock(handle_);
+            const auto result = pthread_mutex_unlock(_handle);
 
             if (result == EPERM)
             {

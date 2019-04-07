@@ -7,20 +7,20 @@
 #include <thread>
 #include <vector>
 
-class robust_mutex_fixture : public testing::Test
+class RobustMutexTestFixture : public testing::Test
 {
 };
 
-TEST_F(robust_mutex_fixture, lock_noowner_succeeds)
+TEST_F(RobustMutexTestFixture, Lock_NoOwner_Succeeds)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("aef94b74", true);
+    auto mutex = azul::ipc::sync::RobustMutex("aef94b74", true);
     mutex.lock();
     mutex.unlock();
 }
 
-TEST_F(robust_mutex_fixture, lock_ownedByOtherThread_blocks)
+TEST_F(RobustMutexTestFixture, Lock_OwnedByOtherThread_Blocks)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("69ed4121", true);
+    auto mutex = azul::ipc::sync::RobustMutex("69ed4121", true);
     bool lock_acquired = false;
     std::atomic<bool> continue_waiting(true);
 
@@ -55,9 +55,9 @@ TEST_F(robust_mutex_fixture, lock_ownedByOtherThread_blocks)
     ASSERT_TRUE(lock_acquired);
 }
 
-TEST_F(robust_mutex_fixture, unlock_byWrongThread_throwsRuntimeError)
+TEST_F(RobustMutexTestFixture, Unlock_ByWrongThread_ThrowsRuntimeError)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("a3e45f16", true);
+    auto mutex = azul::ipc::sync::RobustMutex("a3e45f16", true);
 
     mutex.lock();
 
@@ -66,9 +66,9 @@ TEST_F(robust_mutex_fixture, unlock_byWrongThread_throwsRuntimeError)
     other_thread.join();
 }
 
-TEST_F(robust_mutex_fixture, lock_attemptRecursiveLock_throwsRuntimeError)
+TEST_F(RobustMutexTestFixture, Lock_AttemptRecursiveLock_ThrowsRuntimeError)
 {
-    auto mutex = azul::ipc::sync::robust_mutex("c2bf254c", true);
+    auto mutex = azul::ipc::sync::RobustMutex("c2bf254c", true);
     mutex.lock();
     EXPECT_THROW(mutex.lock(), std::runtime_error);
     mutex.unlock();
@@ -78,6 +78,8 @@ TEST_F(robust_mutex_fixture, lock_attemptRecursiveLock_throwsRuntimeError)
     mutex.unlock();
 }
 
+// old test, does not work with the osx implementations
+// but should not be a use case if lock/unlock is never manually called
 /*TEST_F(robust_mutex_fixture, lock_lockedByAlreadyFinishedThread_lockInMainThreadSucceeds)
 {
     auto mutex = azul::ipc::sync::robust_mutex("4b13a5c1", true);

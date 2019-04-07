@@ -1,13 +1,13 @@
 #include <gmock/gmock.h>
 #include <azul/compute/clcpp/opencl_vector.hpp>
 
-using int2 = azul::compute::clcpp::vec2<std::int32_t>;
+using int2 = azul::compute::clcpp::Vec2<std::int32_t>;
 
-class compute_clcpp_vec2_fixture : public testing::Test
+class OpenClVec2TestFixture : public testing::Test
 {
 };
 
-TEST_F(compute_clcpp_vec2_fixture, operator_subtractionAssignment_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_SubtractionAssignment_ResultValid)
 {
     int2 valueA( 1,  5);
     int2 valueB( 3, 10);
@@ -19,7 +19,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_subtractionAssignment_resultValid)
     ASSERT_EQ(valueA.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_additionAssignment_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_AdditionAssignment_ResultValid)
 {
     int2 valueA( 1,  5);
     int2 valueB( 3, 10);
@@ -31,7 +31,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_additionAssignment_resultValid)
     ASSERT_EQ(valueA.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_multiplicationAssignment_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_MultiplicationAssignment_ResultValid)
 {
     int2 valueA( 1,  5);
     std::int32_t valueB(4);
@@ -43,7 +43,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_multiplicationAssignment_resultValid
     ASSERT_EQ(valueA.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_divisionAssignment_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_DivisionAssignment_ResultValid)
 {
     int2 valueA( 16,  24);
     std::int32_t valueB(4);
@@ -55,7 +55,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_divisionAssignment_resultValid)
     ASSERT_EQ(valueA.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_addition_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_Addition_ResultValid)
 {
     int2 valueA( 16,  24);
     int2 valueB(  1,   2);
@@ -67,7 +67,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_addition_resultValid)
     ASSERT_EQ(result.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_subtraction_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_Subtraction_ResultValid)
 {
     int2 valueA( 16,  24);
     int2 valueB(  1,   2);
@@ -79,7 +79,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_subtraction_resultValid)
     ASSERT_EQ(result.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_multiplication_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_Multiplication_ResultValid)
 {
     int2 valueA( 1,  5);
     std::int32_t valueB(4);
@@ -91,7 +91,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_multiplication_resultValid)
     ASSERT_EQ(result.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_division_resultValid)
+TEST_F(OpenClVec2TestFixture, Operator_Division_ResultValid)
 {
     int2 valueA( 16,  24);
     std::int32_t valueB(4);
@@ -103,7 +103,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_division_resultValid)
     ASSERT_EQ(result.y, expectedResult.y);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_equal_correctResult)
+TEST_F(OpenClVec2TestFixture, Operator_Equal_CorrectResult)
 {
     const int2 valueA( 1, 2);
     const int2 valueB( 1, 2);
@@ -113,7 +113,7 @@ TEST_F(compute_clcpp_vec2_fixture, operator_equal_correctResult)
     ASSERT_FALSE(valueA == valueC);
 }
 
-TEST_F(compute_clcpp_vec2_fixture, operator_notEqual_correctResult)
+TEST_F(OpenClVec2TestFixture, Operator_NotEqual_CorrectResult)
 {
     const int2 valueA( 1, 2);
     const int2 valueB( 1, 2);

@@ -2,8 +2,8 @@
 
 #include <condition_variable>
 #include <cstdint>
-#include <azul/async/detail/task.hpp>
 #include <azul/async/future.hpp>
+#include <azul/async/task.hpp>
 #include <azul/utils/disposer.hpp>
 #include <list>
 #include <memory>
@@ -15,86 +15,86 @@ namespace azul
 {
     namespace async
     {
-        class static_thread_pool
+        class StaticThreadPool
         {
         public:
-            explicit static_thread_pool(const std::size_t number_of_threads)
+            explicit StaticThreadPool(const std::size_t numberOfThreads)
             {
-                std::unique_lock<std::mutex> lock(mutex_);
+                std::unique_lock<std::mutex> lock(_mutex);
 
-                for (std::uint32_t i = 0; i < number_of_threads; ++i)
+                for (std::uint32_t i = 0; i < numberOfThreads; ++i)
                 {
-                    threads_.emplace_back([this](){
-                        thread_loop();
+                    _threads.emplace_back([this](){
+                        ThreadLoop();
                     });
                 }
             }
 
-            ~static_thread_pool()
+            ~StaticThreadPool()
             {
-                shutdown_notify_threads();
-                shutdown_join_threads();
-                shutdown_process_remaining_tasks();
+                ShutdownNotifyThreads();
+                ShutdownJoinThreads();
+                ShutdownDestroyRemainingTasks();
             }
 
-            std::size_t thread_count() const
+            std::size_t ThreadCount() const
             {
-                std::unique_lock<std::mutex> lock(mutex_);
-                return threads_.size();
+                std::unique_lock<std::mutex> lock(_mutex);
+                return _threads.size();
             }
         
             template<typename T, typename TResult=std::invoke_result_t<T>, typename... TFutures>
-            azul::async::future<TResult> execute(T&& callable, TFutures&&... dependencies)
+            Future<TResult> Execute(T&& callable, TFutures&&... dependencies)
             {
-                std::unique_lock<std::mutex> lock(mutex_);
+                std::unique_lock<std::mutex> lock(_mutex);
 
-                const auto new_task = std::make_shared<detail::task_type<TResult>>(std::function<TResult()>(callable), azul::async::detail::wrap_dependencies(dependencies...));
-                tasks_.emplace_back(new_task);
+                const auto newTask = std::make_shared<Task<TResult>>(std::function<TResult()>(callable), azul::async::WrapDependencies(dependencies...));
+                _tasks.emplace_back(newTask);
 
-                condition_.notify_one();
+                _condition.notify_one();
 
-                return new_task->get_future();
+                return newTask->GetFuture();
             }
 
 
         private:            
-            std::condition_variable condition_;
-            mutable std::mutex mutex_;
+            std::condition_variable _condition;
+            mutable std::mutex _mutex;
 
-            std::list<std::shared_ptr<azul::async::detail::base_task_type>> tasks_;
-            std::vector<std::thread> threads_;
+            std::list<std::shared_ptr<azul::async::TaskBase>> _tasks;
+            std::vector<std::thread> _threads;
 
-            bool shutdown_initiated_ = false;
+            bool _shutdownInitiated = false;
 
-            std::shared_ptr<azul::async::detail::base_task_type> next_task()
+            std::shared_ptr<azul::async::TaskBase> NextTask()
             {
-                auto it = tasks_.begin();
+                auto it = _tasks.begin();
 
-                for (; it != tasks_.end(); ++it)
+                for (; it != _tasks.end(); ++it)
                 {
-                    if ((*it)->is_ready())
+                    if ((*it)->IsReady())
                     {
                         break;
                     }
                 }
 
-                if (it != tasks_.end())
+                if (it != _tasks.end())
                 {
                     auto task = *it;
-                    tasks_.erase(it);
+                    _tasks.erase(it);
                     return task;
                 }
 
                 return {};
             }
 
-            void thread_loop()
+            void ThreadLoop()
             {
-                std::unique_lock<std::mutex> lock(mutex_);
+                std::unique_lock<std::mutex> lock(_mutex);
 
-                while (!shutdown_initiated_)
+                while (!_shutdownInitiated)
                 {
-                    const auto task = next_task();
+                    const auto task = NextTask();
                     if (task)
                     {
                         lock.unlock();
@@ -103,34 +103,34 @@ namespace azul
 
                         // number of continuations equals the amount of tasks waiting
                         // for the just executed task to be completed
-                        for (std::size_t i = 0; i < std::min(task->number_of_continuations(), threads_.size()); ++i)
+                        for (std::size_t i = 0; i < std::min(task->NumberOfContinuations(), _threads.size()); ++i)
                         {
-                            condition_.notify_one();
+                            _condition.notify_one();
                         }
                     }
 
-                    if (!task && !shutdown_initiated_)
+                    if (!task && !_shutdownInitiated)
                     {
-                        condition_.wait_for(lock, std::chrono::milliseconds(1000));
+                        _condition.wait_for(lock, std::chrono::milliseconds(1000));
                     }
                 }
             }
 
-            void shutdown_notify_threads()
+            void ShutdownNotifyThreads()
             {
-                std::unique_lock<std::mutex> lock(mutex_);
-                shutdown_initiated_ = true;
-                condition_.notify_all();
+                std::unique_lock<std::mutex> lock(_mutex);
+                _shutdownInitiated = true;
+                _condition.notify_all();
             }
 
-            void shutdown_join_threads()
+            void ShutdownJoinThreads()
             {
-                std::for_each(threads_.begin(), threads_.end(), [](auto& t) { t.join(); });
+                std::for_each(_threads.begin(), _threads.end(), [](auto& t) { t.join(); });
             }
 
-            void shutdown_process_remaining_tasks()
+            void ShutdownDestroyRemainingTasks()
             {
-                tasks_.clear();
+                _tasks.clear();
             }
         };
     }

@@ -6,46 +6,46 @@ namespace azul
 {
     namespace utils
     {
-        class disposer final
+        class Disposer final
         {
         private:
-            std::function<void()> func_;
+            std::function<void()> _func;
 
         public:
-            explicit disposer(std::function<void()> const& func) : func_(func)
+            explicit Disposer(std::function<void()> const& func) : _func(func)
             {
             }
 
-            disposer()
+            Disposer()
             {
             }
 
-            ~disposer()
+            ~Disposer()
             {
-                if (func_)
+                if (_func)
                 {
-                    func_();
+                    _func();
                 }
             }
 
-            void set(std::function<void()> const& func)
+            void Set(std::function<void()> const& func)
             {
-                func_ = func;
+                _func = func;
             }
 
-            disposer(disposer const&) = delete;
-            disposer& operator=(disposer const&) = delete;
+            Disposer(Disposer const&) = delete;
+            Disposer& operator=(Disposer const&) = delete;
 
-            disposer(disposer&& other)
+            Disposer(Disposer&& other)
             {
-                func_ = other.func_;
-                other.func_ = nullptr;
+                _func = other._func;
+                other._func = nullptr;
             }
 
-            disposer& operator=(disposer&& other)
+            Disposer& operator=(Disposer&& other)
             {
-                func_ = other.func_;
-                other.func_ = nullptr;
+                _func = other._func;
+                other._func = nullptr;
                 return *this;
             }
         };

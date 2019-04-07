@@ -8,10 +8,10 @@ namespace azul
     {
         namespace detail
         {
-            class resource_missing_error final : public std::runtime_error
+            class ResourceMissingError final : public std::runtime_error
             {
             public:
-                explicit resource_missing_error() : std::runtime_error("")
+                explicit ResourceMissingError() : std::runtime_error("")
                 { }
             };
         }
