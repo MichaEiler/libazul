@@ -113,3 +113,25 @@ TEST_F(task_fixture, getValue_taskInOtherThread_blocksUntilTaskProcessed)
     ASSERT_TRUE(result_available);   
 }
 
+TEST_F(task_fixture, isReady_noDependency_returnsTrue)
+{
+    auto task = impulso::async::detail::task_type<void>([](){});
+    ASSERT_TRUE(task.is_ready());
+}
+
+TEST_F(task_fixture, isReady_dependencyNotReady_returnsFalse)
+{
+    impulso::async::promise<void> promise;
+    auto future = promise.get_future();
+    auto task = impulso::async::detail::task_type<void>([](){}, future);
+    ASSERT_FALSE(task.is_ready());
+}
+
+TEST_F(task_fixture, isReady_dependencyReady_returnsTrue)
+{
+    impulso::async::promise<void> promise;
+    auto future = promise.get_future();
+    promise.set_value();
+    auto task = impulso::async::detail::task_type<void>([](){}, future);
+    ASSERT_TRUE(task.is_ready());
+}
