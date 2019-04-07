@@ -36,7 +36,7 @@ namespace
             int fd = shm_open(name.c_str(), flags, 0644/*S_IRUSR | S_IWUSR*/);
             if (fd < 0 && errno == ENOENT)
             {
-                throw azul::ipc::detail::resource_missing_error();
+                throw azul::ipc::detail::ResourceMissingError();
             }
 
             if (fd < 0 && errno == EEXIST)
