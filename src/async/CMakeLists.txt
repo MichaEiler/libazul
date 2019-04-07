@@ -6,12 +6,12 @@ else()
     message(FATAL_ERROR "This platform does not have an async implementation available.")
 endif()
 
-file (GLOB SOURCES "${CMAKE_SOURCE_DIR}/include/impulso/async/*.hpp")
+file (GLOB SOURCES "${CMAKE_SOURCE_DIR}/include/azul/async/*.hpp")
 
-add_library (impulso_async INTERFACE)
-target_sources(impulso_async INTERFACE ${SOURCES})
-target_link_libraries(impulso_async INTERFACE ${PLATFORM_DEPENDENCIES})
+add_library (azul_async INTERFACE)
+target_sources(azul_async INTERFACE ${SOURCES})
+target_link_libraries(azul_async INTERFACE ${PLATFORM_DEPENDENCIES})
 
 if (MSVC)
-add_custom_target(impulso_async_headers SOURCES ${SOURCES})
+add_custom_target(azul_async_headers SOURCES ${SOURCES})
 endif()

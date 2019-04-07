@@ -1,8 +1,8 @@
-# libimpulso
+# libazul
 
-![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/MichaelE1000/libimpulso?branch=master&svg=true "AppVeyor Build Status")
+![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/MichaelE1000/libazul?branch=master&svg=true "AppVeyor Build Status")
 
-libimpulso is a collection of C++ framework components.
+libazul is a collection of C++ framework components.
 
 Main goals of this framework are: 
 * Applying best practices to a small, manageable project
@@ -21,6 +21,10 @@ Since a lot of this code depends on operating system features, different impleme
 #### COMPUTE
 
 This component contains some experiments related to opencl. The current clcpp subfolder contains some headers which implement a simple approach to compile opencl code as C++. This approach only works with very simple kernels (e.g. no memory barries) but that should already be enough for a wide range of algorithms. Use the set_global_id function to set the global index and afterwards call the kernel function. The global index is stored in a thread local variable and the kernel functions can be called simultaneously from multiple threads. To automate the process of calling a kernel function, the opencl_kernel_executor combined with the fair_executor from the async component can be used. This automates the whole process of scheduling all work items using a thread pool.
+
+#### ASYNC
+
+A library providing components for async programming. Currently contains a future with some extensions from the concurrency TS and a thread pool
 
 #### More to come ...
 

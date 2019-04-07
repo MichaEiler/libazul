@@ -1,7 +1,7 @@
 #include <atomic>
 #include <chrono>
 #include <gmock/gmock.h>
-#include <impulso/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/sync/robust_mutex.hpp>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -13,14 +13,14 @@ class robust_mutex_fixture : public testing::Test
 
 TEST_F(robust_mutex_fixture, lock_noowner_succeeds)
 {
-    auto mutex = impulso::ipc::sync::robust_mutex("aef94b74", true);
+    auto mutex = azul::ipc::sync::robust_mutex("aef94b74", true);
     mutex.lock();
     mutex.unlock();
 }
 
 TEST_F(robust_mutex_fixture, lock_ownedByOtherThread_blocks)
 {
-    auto mutex = impulso::ipc::sync::robust_mutex("69ed4121", true);
+    auto mutex = azul::ipc::sync::robust_mutex("69ed4121", true);
     bool lock_acquired = false;
     std::atomic<bool> continue_waiting(true);
 
@@ -57,7 +57,7 @@ TEST_F(robust_mutex_fixture, lock_ownedByOtherThread_blocks)
 
 TEST_F(robust_mutex_fixture, unlock_byWrongThread_throwsRuntimeError)
 {
-    auto mutex = impulso::ipc::sync::robust_mutex("a3e45f16", true);
+    auto mutex = azul::ipc::sync::robust_mutex("a3e45f16", true);
 
     mutex.lock();
 
@@ -68,7 +68,7 @@ TEST_F(robust_mutex_fixture, unlock_byWrongThread_throwsRuntimeError)
 
 TEST_F(robust_mutex_fixture, lock_attemptRecursiveLock_throwsRuntimeError)
 {
-    auto mutex = impulso::ipc::sync::robust_mutex("c2bf254c", true);
+    auto mutex = azul::ipc::sync::robust_mutex("c2bf254c", true);
     mutex.lock();
     EXPECT_THROW(mutex.lock(), std::runtime_error);
     mutex.unlock();
@@ -80,7 +80,7 @@ TEST_F(robust_mutex_fixture, lock_attemptRecursiveLock_throwsRuntimeError)
 
 /*TEST_F(robust_mutex_fixture, lock_lockedByAlreadyFinishedThread_lockInMainThreadSucceeds)
 {
-    auto mutex = impulso::ipc::sync::robust_mutex("4b13a5c1", true);
+    auto mutex = azul::ipc::sync::robust_mutex("4b13a5c1", true);
 
     std::thread other_thread([&mutex]() { mutex.lock(); });
     other_thread.join();

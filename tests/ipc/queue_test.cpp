@@ -7,14 +7,14 @@ class queue_fixture : public testing::Test
 {
 protected:
     std::vector<int> buffer_;
-    impulso::ipc::detail::queue<int> queue_;
+    azul::ipc::detail::queue<int> queue_;
 
 public:
     void SetUp()
     {
         buffer_.resize(32);
         const bool initialize = true;
-        queue_ = impulso::ipc::detail::queue<int>(&buffer_[0], static_cast<uint32_t>(buffer_.size() * sizeof(int)), initialize);
+        queue_ = azul::ipc::detail::queue<int>(&buffer_[0], static_cast<uint32_t>(buffer_.size() * sizeof(int)), initialize);
     }
     void TearDown()
     {

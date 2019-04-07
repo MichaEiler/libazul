@@ -1,6 +1,6 @@
-#include "impulso/ipc/shared_memory.hpp"
+#include "azul/ipc/shared_memory.hpp"
 
-#include <impulso/utils/disposer.hpp>
+#include <azul/utils/disposer.hpp>
 #include <Windows.h>
 #include <stdexcept>
 
@@ -9,7 +9,7 @@ namespace
     class shared_memory final
     {
     private:
-        static void* create_shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner, ::impulso::utils::disposer& disposer)
+        static void* create_shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner, ::azul::utils::disposer& disposer)
         {
             void* handle = nullptr;
             if (is_owner)
@@ -39,7 +39,7 @@ namespace
             return address;
         }
 
-        ::impulso::utils::disposer disposer_;
+        ::azul::utils::disposer disposer_;
         void *const address_ = nullptr;
         const std::uint64_t size_ = 0;
 
@@ -63,20 +63,20 @@ namespace
 
 // -----------------------------------------------------------------------------------------------------
 
-::impulso::ipc::shared_memory::shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner)
+::azul::ipc::shared_memory::shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner)
     : impl_(std::make_unique<::shared_memory>(name, size, is_owner))
 {
 }
 
-::impulso::ipc::shared_memory::shared_memory() : impl_(nullptr)
+::azul::ipc::shared_memory::shared_memory() : impl_(nullptr)
 {
 }
 
-::impulso::ipc::shared_memory::~shared_memory()
+::azul::ipc::shared_memory::~shared_memory()
 {
 }
 
-void* ::impulso::ipc::shared_memory::address() const
+void* ::azul::ipc::shared_memory::address() const
 {
     if (!impl_)
     {
@@ -87,7 +87,7 @@ void* ::impulso::ipc::shared_memory::address() const
     return instance->address();
 }
 
-std::uint64_t impulso::ipc::shared_memory::size() const
+std::uint64_t azul::ipc::shared_memory::size() const
 {
 	if (!impl_)
 	{

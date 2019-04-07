@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <fcntl.h>
-#include <impulso/utils/disposer.hpp>
+#include <azul/utils/disposer.hpp>
 #include <poll.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-namespace impulso
+namespace azul
 {
     namespace ipc
     {
@@ -20,14 +20,14 @@ namespace impulso
             class fifo
             {
             private:
-                impulso::utils::disposer fifo_disposer_;
+                azul::utils::disposer fifo_disposer_;
                 int fifo_descriptor_;
 
-                static int create_or_open_fifo(std::string const& path, bool const is_owner, impulso::utils::disposer& disposer);
+                static int create_or_open_fifo(std::string const& path, bool const is_owner, azul::utils::disposer& disposer);
             public:
                 explicit fifo(std::string const& name, bool const is_owner)
                     : fifo_disposer_()
-                    , fifo_descriptor_(create_or_open_fifo(std::string("/tmp/impulso_fifo_") + name, is_owner, fifo_disposer_))
+                    , fifo_descriptor_(create_or_open_fifo(std::string("/tmp/azul_fifo_") + name, is_owner, fifo_disposer_))
                 {
 
                 }
@@ -82,7 +82,7 @@ namespace impulso
     }
 }
 
-int impulso::ipc::detail::fifo::create_or_open_fifo(std::string const& path, bool const is_owner, impulso::utils::disposer& disposer)
+int azul::ipc::detail::fifo::create_or_open_fifo(std::string const& path, bool const is_owner, azul::utils::disposer& disposer)
 {
     if (is_owner)
     {

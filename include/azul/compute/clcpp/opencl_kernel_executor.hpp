@@ -6,15 +6,15 @@
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
-#include <impulso/async/static_thread_pool.hpp>
-#include <impulso/compute/clcpp/opencl.hpp>
+#include <azul/async/static_thread_pool.hpp>
+#include <azul/compute/clcpp/opencl.hpp>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
 #include <tuple>
 
-namespace impulso
+namespace azul
 {
     namespace compute
     {
@@ -29,9 +29,9 @@ namespace impulso
                     
                 }
 
-                impulso::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t> const& global_work_size, std::tuple<std::size_t> const& global_work_offset = { 0u })
+                azul::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t> const& global_work_size, std::tuple<std::size_t> const& global_work_offset = { 0u })
                 {
-                    std::vector<impulso::async::future<void>> task_results;
+                    std::vector<azul::async::future<void>> task_results;
 
                     const auto work_items = std::get<0>(global_work_size);
                     const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
@@ -54,9 +54,9 @@ namespace impulso
                     return wait_for(task_results);
                 }
 
-                impulso::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t> const& global_work_offset = { 0u, 0u })
+                azul::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t> const& global_work_offset = { 0u, 0u })
                 {
-                    std::vector<impulso::async::future<void>> task_results;
+                    std::vector<azul::async::future<void>> task_results;
 
                     const auto work_items  = std::get<0>(global_work_size) * std::get<1>(global_work_size);
                     const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
@@ -78,9 +78,9 @@ namespace impulso
                     return wait_for(task_results);
                 }
 
-                impulso::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_offset = { 0u, 0u, 0u })
+                azul::async::future<void> execute(std::function<void()> && kernel, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_size, std::tuple<std::size_t, std::size_t, std::size_t> const& global_work_offset = { 0u, 0u, 0u })
                 {
-                    std::vector<impulso::async::future<void>> task_results;
+                    std::vector<azul::async::future<void>> task_results;
 
                     const auto work_items  = std::get<0>(global_work_size) * std::get<1>(global_work_size) * std::get<2>(global_work_size);
                     const auto work_items_per_task = std::max<std::size_t>(work_items / executor_->thread_count(), 1ul);
@@ -104,12 +104,12 @@ namespace impulso
                 }
 
             private:
-                impulso::async::future<void> wait_for(std::vector<impulso::async::future<void>>& futures)
+                azul::async::future<void> wait_for(std::vector<azul::async::future<void>>& futures)
                 {
-                    auto shared_future_state = std::make_shared<impulso::async::detail::future_state<void>>();
-                    auto future = ::impulso::async::future<void>(shared_future_state);
+                    auto shared_future_state = std::make_shared<azul::async::detail::future_state<void>>();
+                    auto future = ::azul::async::future<void>(shared_future_state);
 
-                    auto shared_promise_activator = std::make_shared<impulso::utils::disposer>([shared_future_state]() {
+                    auto shared_promise_activator = std::make_shared<azul::utils::disposer>([shared_future_state]() {
                         shared_future_state->set();
                     });
 

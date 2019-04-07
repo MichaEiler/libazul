@@ -1,8 +1,8 @@
-#include "impulso/ipc/shared_memory.hpp"
+#include "azul/ipc/shared_memory.hpp"
 
 #include <cerrno>
 #include <fcntl.h>
-#include <impulso/utils/disposer.hpp>
+#include <azul/utils/disposer.hpp>
 #include <stdexcept>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -18,11 +18,11 @@ namespace
     class shared_memory final
     {
     private:
-        static int create_shared_memory(bool const is_owner, std::string const& full_name, impulso::utils::disposer& disposer)
+        static int create_shared_memory(bool const is_owner, std::string const& full_name, azul::utils::disposer& disposer)
         {
             // maximum name length on darwin is 31 bytes, base64 encoded sha1 hash is unique enough stays within these limits
-            const auto hashed_name = impulso::ipc::detail::sha1_hash(full_name);
-            const auto encoded_name = impulso::ipc::detail::base64_encode(hashed_name);
+            const auto hashed_name = azul::ipc::detail::sha1_hash(full_name);
+            const auto encoded_name = azul::ipc::detail::base64_encode(hashed_name);
             const auto name = "/" + encoded_name;
 
             if (is_owner)
@@ -36,7 +36,7 @@ namespace
             int fd = shm_open(name.c_str(), flags, 0644/*S_IRUSR | S_IWUSR*/);
             if (fd < 0 && errno == ENOENT)
             {
-                throw impulso::ipc::detail::resource_missing_error();
+                throw azul::ipc::detail::resource_missing_error();
             }
 
             if (fd < 0 && errno == EEXIST)
@@ -65,7 +65,7 @@ namespace
             return fd;
         }
 
-        static void* allocate_shared_memory(int const fd, std::uint64_t const size, bool const is_owner, impulso::utils::disposer& disposer)
+        static void* allocate_shared_memory(int const fd, std::uint64_t const size, bool const is_owner, azul::utils::disposer& disposer)
         {
             struct stat mapstat;
             if (is_owner && fstat(fd, &mapstat) != -1 && mapstat.st_size == 0 && ftruncate(fd, size) != 0)
@@ -86,10 +86,10 @@ namespace
             return address;
         }
 
-        impulso::utils::disposer fd_disposer_;
+        azul::utils::disposer fd_disposer_;
         const int fd_ = 0;
 
-        impulso::utils::disposer allocation_disposer_;
+        azul::utils::disposer allocation_disposer_;
         void* const address_ = nullptr;
 
         const std::uint64_t size_ = 0;
@@ -116,20 +116,20 @@ namespace
 
 // -----------------------------------------------------------------------------------------------------
 
-impulso::ipc::shared_memory::shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner)
+azul::ipc::shared_memory::shared_memory(std::string const& name, std::uint64_t const size, bool const is_owner)
     : impl_(std::make_unique<::shared_memory>(name, size, is_owner))
 {
 }
 
-impulso::ipc::shared_memory::shared_memory() : impl_(nullptr)
+azul::ipc::shared_memory::shared_memory() : impl_(nullptr)
 {
 }
 
-impulso::ipc::shared_memory::~shared_memory()
+azul::ipc::shared_memory::~shared_memory()
 {
 }
 
-void* impulso::ipc::shared_memory::address() const
+void* azul::ipc::shared_memory::address() const
 {
     if (!impl_)
     {
@@ -140,7 +140,7 @@ void* impulso::ipc::shared_memory::address() const
     return instance->address();
 }
 
-std::uint64_t impulso::ipc::shared_memory::size() const
+std::uint64_t azul::ipc::shared_memory::size() const
 {
     if (!impl_)
     {

@@ -1,12 +1,12 @@
 #pragma once
 
 #include <functional>
-#include <impulso/async/future.hpp>
-#include <impulso/utils/disposer.hpp>
+#include <azul/async/future.hpp>
+#include <azul/utils/disposer.hpp>
 #include <memory>
 #include <stdexcept>
 
-namespace impulso
+namespace azul
 {
     namespace async
     {
@@ -15,7 +15,7 @@ namespace impulso
             class base_task_type
             {
             public:
-                explicit base_task_type(impulso::async::future<void> const& dependency)
+                explicit base_task_type(azul::async::future<void> const& dependency)
                     : dependency_(dependency)
                 {
 
@@ -38,14 +38,14 @@ namespace impulso
                 virtual std::size_t number_of_continuations() const = 0;
             
             private:
-                impulso::async::future<void> dependency_;
+                azul::async::future<void> dependency_;
             };
 
             template <typename TResult>
             class task_type : public base_task_type
             {
             public:
-                explicit task_type(std::function<TResult()> && func, impulso::async::future<void> const& dependency = { })
+                explicit task_type(std::function<TResult()> && func, azul::async::future<void> const& dependency = { })
                     : base_task_type(dependency)
                     , func_(std::make_shared<std::function<TResult()>>(func))
                 {
@@ -66,7 +66,7 @@ namespace impulso
                     }
                 }
 
-                impulso::async::future<TResult> get_future() { return promise_.get_future(); }
+                azul::async::future<TResult> get_future() { return promise_.get_future(); }
 
                 std::size_t number_of_continuations() const override
                 {
@@ -74,7 +74,7 @@ namespace impulso
                 }
 
             private:
-                impulso::async::promise<TResult> promise_;
+                azul::async::promise<TResult> promise_;
                 std::shared_ptr<std::function<TResult()>> func_;
             };
 
@@ -82,7 +82,7 @@ namespace impulso
             class task_type<void> : public base_task_type
             {
             public:
-                explicit task_type(std::function<void()> && func, impulso::async::future<void> const& dependency = { })
+                explicit task_type(std::function<void()> && func, azul::async::future<void> const& dependency = { })
                     : base_task_type(dependency)
                     , func_(std::make_shared<std::function<void()>>(func))
                 {
@@ -103,7 +103,7 @@ namespace impulso
                     }
                 }
 
-                impulso::async::future<void> get_future() { return promise_.get_future(); }
+                azul::async::future<void> get_future() { return promise_.get_future(); }
                 
                 std::size_t number_of_continuations() const override
                 {
@@ -111,7 +111,7 @@ namespace impulso
                 }
 
             private:
-                impulso::async::promise<void> promise_;
+                azul::async::promise<void> promise_;
                 std::shared_ptr<std::function<void()>> func_;
             };
 
@@ -119,9 +119,9 @@ namespace impulso
             future<void> wrap_dependencies(TFutures&&... futures)
             {
                 auto shared_future_state = std::make_shared<detail::future_state<void>>();
-                auto future = ::impulso::async::future<void>(shared_future_state);
+                auto future = ::azul::async::future<void>(shared_future_state);
 
-                auto shared_promise_activator = std::make_shared<impulso::utils::disposer>([shared_future_state]() {
+                auto shared_promise_activator = std::make_shared<azul::utils::disposer>([shared_future_state]() {
                     shared_future_state->set();
                 });
 

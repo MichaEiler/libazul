@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <tuple>
 
-namespace impulso
+namespace azul
 {
     namespace compute
     {

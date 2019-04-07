@@ -6,9 +6,9 @@
 // http://pubs.opengroup.org/onlinepubs/009604499/functions/pthread_mutexattr_getpshared.html
 // https://linux.die.net/man/3/pthread_mutex_trylock
 
-#include <impulso/ipc/shared_memory.hpp>
-#include <impulso/ipc/sync/condition_variable.hpp>
-#include <impulso/utils/disposer.hpp>
+#include <azul/ipc/shared_memory.hpp>
+#include <azul/ipc/sync/condition_variable.hpp>
+#include <azul/utils/disposer.hpp>
 #include <pthread.h>
 #include <string>
 
@@ -17,11 +17,11 @@ namespace
     class robust_mutex final
     {
     private:
-        ::impulso::ipc::shared_memory mutex_memory_;
-        ::impulso::utils::disposer mutex_disposer_;
+        ::azul::ipc::shared_memory mutex_memory_;
+        ::azul::utils::disposer mutex_disposer_;
         pthread_mutex_t *const handle_ = nullptr;
 
-        friend class ::impulso::ipc::sync::condition_variable;
+        friend class ::azul::ipc::sync::condition_variable;
     public:
         explicit robust_mutex(std::string const& name, bool const is_owner)
             : mutex_memory_(std::string("ipc_mutex_") + name, sizeof(pthread_mutex_t), is_owner),

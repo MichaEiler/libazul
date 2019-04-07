@@ -2,12 +2,12 @@
 
 #include <chrono>
 #include <condition_variable>
-#include <impulso/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/sync/robust_mutex.hpp>
 #include <memory>
 #include <mutex>
 #include <string>
 
-namespace impulso
+namespace azul
 {
     namespace ipc
     {
@@ -22,8 +22,8 @@ namespace impulso
 
                 void notify_one();
                 void notify_all();
-                void wait(std::unique_lock<impulso::ipc::sync::robust_mutex>& mutex);
-                std::cv_status wait_for(std::unique_lock<impulso::ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout);
+                void wait(std::unique_lock<azul::ipc::sync::robust_mutex>& mutex);
+                std::cv_status wait_for(std::unique_lock<azul::ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout);
 
                 condition_variable(condition_variable const&) = delete;
                 condition_variable operator=(condition_variable const&) = delete;

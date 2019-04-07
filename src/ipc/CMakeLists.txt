@@ -18,11 +18,11 @@ endif()
 file (GLOB SOURCES ${PLATFORM_DIRS}
                    "${CMAKE_CURRENT_SOURCE_DIR}/detail/*.cpp"
                    "${CMAKE_CURRENT_SOURCE_DIR}/detail/*.hpp"
-                   "${CMAKE_SOURCE_DIR}/include/impulso/ipc/*.hpp")
+                   "${CMAKE_SOURCE_DIR}/include/azul/ipc/*.hpp")
 
-add_library (impulso_ipc ${SOURCES})
-target_include_directories (impulso_ipc PUBLIC "${CMAKE_SOURCE_DIR}/include/")
-target_include_directories (impulso_ipc PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/")
-target_link_libraries(impulso_ipc impulso_utils ${PLATFORM_DEPENDENCIES})
+add_library (azul_ipc ${SOURCES})
+target_include_directories (azul_ipc PUBLIC "${CMAKE_SOURCE_DIR}/include/")
+target_include_directories (azul_ipc PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/")
+target_link_libraries(azul_ipc azul_utils ${PLATFORM_DEPENDENCIES})
 
 endif()

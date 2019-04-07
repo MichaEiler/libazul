@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
-#include <impulso/async/static_thread_pool.hpp>
-#include <impulso/compute/clcpp/opencl_kernel_executor.hpp>
-#include <impulso/compute/clcpp/opencl.hpp>
+#include <azul/async/static_thread_pool.hpp>
+#include <azul/compute/clcpp/opencl_kernel_executor.hpp>
+#include <azul/compute/clcpp/opencl.hpp>
 #include <iostream>
 
 class kernel_executor_fixture : public testing::Test
@@ -10,15 +10,15 @@ class kernel_executor_fixture : public testing::Test
 
 TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsValid)
 {
-    const auto executor = std::make_shared<impulso::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<impulso::compute::clcpp::opencl_kernel_executor>(executor);
+    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);
 
     const std::size_t width = 1920;
     const std::size_t height = 1080;
     std::vector<int> image(width * height, 0);
 
     const auto kernel = [&image, width]() {
-        using namespace impulso::compute::clcpp;
+        using namespace azul::compute::clcpp;
         image[get_global_id(1) * width + get_global_id(0)]++;
     };
 
@@ -37,14 +37,14 @@ TEST_F(kernel_executor_fixture, kernelExecutor_workItemCountLarge_kernelCallsVal
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted)
 {
-    const auto executor = std::make_shared<impulso::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<impulso::compute::clcpp::opencl_kernel_executor>(executor);
+    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);
 
     std::vector<int> expected_result { 1, 1, 1, 1, 1, 1, 1, 1, 0, 0};
     std::vector<int> result(expected_result.size(), 0);
 
     const auto kernel = [&result]() {
-        using namespace impulso::compute::clcpp;
+        using namespace azul::compute::clcpp;
         result[get_global_id(0)]++;
     };
 
@@ -59,14 +59,14 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_allWorkItemsExecuted
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
 {
-    const auto executor = std::make_shared<impulso::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<impulso::compute::clcpp::opencl_kernel_executor>(executor);
+    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);
 
     std::vector<int> expected_result { 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
     std::vector<int> result(expected_result.size(), 0);
 
     const auto kernel = [&result]() {
-        using namespace impulso::compute::clcpp;
+        using namespace azul::compute::clcpp;
         result[get_global_id(0)]++;
     };
 
@@ -81,14 +81,14 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithOneDim_offsetConsidered)
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecuted)
 {
-    const auto executor = std::make_shared<impulso::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<impulso::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
 
     std::vector<int> expected_result { 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     std::vector<int> result(expected_result.size(), 0);
 
     const auto kernel = [&result, width=4]() {
-        using namespace impulso::compute::clcpp;
+        using namespace azul::compute::clcpp;
         result[get_global_id(1) * width + get_global_id(0)]++;
     };
 
@@ -103,14 +103,14 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_allWorkItemsExecute
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
 {
-    const auto executor = std::make_shared<impulso::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<impulso::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
 
     std::vector<int> expected_result { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 };
     std::vector<int> result(expected_result.size(), 0);
 
     const auto kernel = [&result, width=4]() {
-        using namespace impulso::compute::clcpp;
+        using namespace azul::compute::clcpp;
         result[get_global_id(1) * width + get_global_id(0)]++;
     };
 
@@ -125,8 +125,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithTwoDims_offsetConsidered)
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecuted)
 {
-    const auto executor = std::make_shared<impulso::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<impulso::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
 
     // prepare expected result, a cuboid in the lower left corner with width 4, depth 3 and height 2
     const int edge = 5;
@@ -145,7 +145,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecu
     std::vector<int> result(expected_result.size(), 0);
 
     const auto kernel = [&result, edge]() {
-        using namespace impulso::compute::clcpp;
+        using namespace azul::compute::clcpp;
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };
 
@@ -160,8 +160,8 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_allWorkItemsExecu
 
 TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_offsetConsidered)
 {
-    const auto executor = std::make_shared<impulso::async::static_thread_pool>(5);
-    const auto kernel_executor = std::make_shared<impulso::compute::clcpp::opencl_kernel_executor>(executor);   
+    const auto executor = std::make_shared<azul::async::static_thread_pool>(5);
+    const auto kernel_executor = std::make_shared<azul::compute::clcpp::opencl_kernel_executor>(executor);   
 
     // prepare expected result, nested cubes
     const int edge = 5;
@@ -189,7 +189,7 @@ TEST_F(kernel_executor_fixture, execute_workItemsWithThreeDims_offsetConsidered)
     std::vector<int> result(expected_result.size(), 0);
 
     const auto kernel = [&result, edge]() {
-        using namespace impulso::compute::clcpp;
+        using namespace azul::compute::clcpp;
         result[(get_global_id(2) * edge + get_global_id(1))* edge + get_global_id(0)]++;
     };
 

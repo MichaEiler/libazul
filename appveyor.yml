@@ -28,22 +28,22 @@ build_script:
     make -j2
 test_script:
 - cmd: >-
-    cd C:\projects\libimpulso\build
+    cd C:\projects\libazul\build
 
-    tests\async\Release\tests_impulso_async.exe
+    tests\async\Release\tests_azul_async.exe
 
-    tests\compute\Release\tests_impulso_compute.exe
+    tests\compute\Release\tests_azul_compute.exe
     
-    tests\ipc\Release\tests_impulso_ipc.exe
+    tests\ipc\Release\tests_azul_ipc.exe
 
-    tests\utils\Release\tests_impulso_utils.exe
+    tests\utils\Release\tests_azul_utils.exe
 - sh: >-
-    cd /home/appveyor/projects/libimpulso/build/
+    cd /home/appveyor/projects/libazul/build/
 
-    ./tests/async/tests_impulso_async
+    ./tests/async/tests_azul_async
 
-    ./tests/compute/tests_impulso_compute
+    ./tests/compute/tests_azul_compute
 
-    ./tests/ipc/tests_impulso_ipc
+    ./tests/ipc/tests_azul_ipc
 
-    ./tests/utils/tests_impulso_utils
+    ./tests/utils/tests_azul_utils

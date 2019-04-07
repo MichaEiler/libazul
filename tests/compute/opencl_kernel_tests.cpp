@@ -1,10 +1,10 @@
 #include <gmock/gmock.h>
 
-#include <impulso/compute/clcpp/opencl_kernel_pre.hpp>
+#include <azul/compute/clcpp/opencl_kernel_pre.hpp>
 #include "kernels/math_builtins.cl"
 #include "kernels/vec_add.cl"
 #include "kernels/vec_types.cl"
-#include <impulso/compute/clcpp/opencl_kernel_post.hpp>
+#include <azul/compute/clcpp/opencl_kernel_post.hpp>
 
 
 
@@ -20,7 +20,7 @@ TEST_F(compute_clcpp_kernel_fixture, kernelVecAdd_executed_resultValid)
 
     for (int i = 0; i < 3; ++i)
     {
-        impulso::compute::clcpp::set_global_id(0, static_cast<std::size_t>(i));
+        azul::compute::clcpp::set_global_id(0, static_cast<std::size_t>(i));
         clcpp::kernel_vec_add(input, input, result);
     }
     
@@ -33,13 +33,13 @@ TEST_F(compute_clcpp_kernel_fixture, kernelVecAdd_executed_resultValid)
 TEST_F(compute_clcpp_kernel_fixture, kernelMathBuiltIns_compilationCheck_noWarningsShown)
 {
     float input = 1.0f;
-    impulso::compute::clcpp::set_global_id(0, 0);
+    azul::compute::clcpp::set_global_id(0, 0);
     clcpp::kernel_math_builtins(&input);
 }
 
 TEST_F(compute_clcpp_kernel_fixture, kernelVecTypes_compilationCheck_float4Supported)
 {
     float input = 1.0f;
-    impulso::compute::clcpp::set_global_id(0, 0);
+    azul::compute::clcpp::set_global_id(0, 0);
     clcpp::kernel_vec_types(&input);
 }

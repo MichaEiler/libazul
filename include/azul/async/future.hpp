@@ -2,13 +2,13 @@
 
 #include <chrono>
 #include <condition_variable>
-#include <impulso/async/detail/future_state.hpp>
+#include <azul/async/detail/future_state.hpp>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <type_traits>
 
-namespace impulso
+namespace azul
 {
     namespace async
     {   
@@ -75,7 +75,7 @@ namespace impulso
             }
 
             template <typename F>
-            typename impulso::async::future<std::invoke_result_t<F, future<T>>> then(F&& callable)
+            typename azul::async::future<std::invoke_result_t<F, future<T>>> then(F&& callable)
             {
                 check();
 
@@ -86,9 +86,9 @@ namespace impulso
                     delete state;
                 });
 
-                auto result_future = impulso::async::future<TResult>(state_of_result_future);
+                auto result_future = azul::async::future<TResult>(state_of_result_future);
 
-                auto continuation = [callable = std::function<TResult(impulso::async::future<T>)>(callable), state_of_result_future, copyOfThis = impulso::async::future<T>(*this)]()
+                auto continuation = [callable = std::function<TResult(azul::async::future<T>)>(callable), state_of_result_future, copyOfThis = azul::async::future<T>(*this)]()
                 {
                     try
                     {

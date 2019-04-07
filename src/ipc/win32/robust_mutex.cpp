@@ -1,6 +1,6 @@
-#include "impulso/ipc/sync/robust_mutex.hpp"
+#include "azul/ipc/sync/robust_mutex.hpp"
 
-#include <impulso/utils/disposer.hpp>
+#include <azul/utils/disposer.hpp>
 #include <thread>
 #include <Windows.h>
 #include <stdexcept>
@@ -10,7 +10,7 @@ namespace
     class robust_mutex final
     {
     private:
-        ::impulso::utils::disposer disposer_;
+        ::azul::utils::disposer disposer_;
         void* mutex_ = nullptr;
         std::thread::id current_locking_thread_;
 
@@ -85,20 +85,20 @@ namespace
 
 // -----------------------------------------------------------------------------------------------------
 
-impulso::ipc::sync::robust_mutex::robust_mutex(std::string const& name, bool const is_owner)
+azul::ipc::sync::robust_mutex::robust_mutex(std::string const& name, bool const is_owner)
     : impl_(std::make_unique<::robust_mutex>(name, is_owner))
 {
 }
 
-impulso::ipc::sync::robust_mutex::robust_mutex() : impl_(nullptr)
+azul::ipc::sync::robust_mutex::robust_mutex() : impl_(nullptr)
 {
 }
 
-impulso::ipc::sync::robust_mutex::~robust_mutex()
+azul::ipc::sync::robust_mutex::~robust_mutex()
 {
 }
 
-void impulso::ipc::sync::robust_mutex::lock()
+void azul::ipc::sync::robust_mutex::lock()
 {
     if (!impl_)
     {
@@ -109,7 +109,7 @@ void impulso::ipc::sync::robust_mutex::lock()
     instance->lock();
 }
 
-bool impulso::ipc::sync::robust_mutex::try_lock()
+bool azul::ipc::sync::robust_mutex::try_lock()
 {
     if (!impl_)
     {
@@ -120,7 +120,7 @@ bool impulso::ipc::sync::robust_mutex::try_lock()
     return instance->try_lock();
 }
 
-void impulso::ipc::sync::robust_mutex::unlock()
+void azul::ipc::sync::robust_mutex::unlock()
 {
     if (!impl_)
     {

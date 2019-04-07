@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-namespace impulso
+namespace azul
 {
     namespace ipc
     {

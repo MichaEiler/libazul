@@ -5,7 +5,7 @@
 #include <mutex>
 #include <stdexcept>
 
-namespace impulso
+namespace azul
 {
     namespace async
     {
@@ -66,7 +66,7 @@ namespace impulso
                         case state_type::exception:
                             std::rethrow_exception(exception_);
                         case state_type::broken_promise:
-                            throw impulso::async::future_error(impulso::async::future_errc::broken_promise);
+                            throw azul::async::future_error(azul::async::future_errc::broken_promise);
                         case state_type::ready:
                             return value_;
                         case state_type::undefined:
@@ -212,7 +212,7 @@ namespace impulso
                         case state_type::exception:
                             std::rethrow_exception(exception_);
                         case state_type::broken_promise:
-                            throw impulso::async::future_error(impulso::async::future_errc::broken_promise);
+                            throw azul::async::future_error(azul::async::future_errc::broken_promise);
                         case state_type::ready:
                             return;
                         case state_type::undefined:

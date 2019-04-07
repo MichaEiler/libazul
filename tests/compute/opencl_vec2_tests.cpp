@@ -1,7 +1,7 @@
 #include <gmock/gmock.h>
-#include <impulso/compute/clcpp/opencl_vector.hpp>
+#include <azul/compute/clcpp/opencl_vector.hpp>
 
-using int2 = impulso::compute::clcpp::vec2<std::int32_t>;
+using int2 = azul::compute::clcpp::vec2<std::int32_t>;
 
 class compute_clcpp_vec2_fixture : public testing::Test
 {

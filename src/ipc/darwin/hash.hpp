@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace impulso
+namespace azul
 {
     namespace ipc
     {

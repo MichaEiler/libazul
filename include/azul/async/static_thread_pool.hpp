@@ -2,16 +2,16 @@
 
 #include <condition_variable>
 #include <cstdint>
-#include <impulso/async/detail/task.hpp>
-#include <impulso/async/future.hpp>
-#include <impulso/utils/disposer.hpp>
+#include <azul/async/detail/task.hpp>
+#include <azul/async/future.hpp>
+#include <azul/utils/disposer.hpp>
 #include <list>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <vector>
 
-namespace impulso
+namespace azul
 {
     namespace async
     {
@@ -44,11 +44,11 @@ namespace impulso
             }
         
             template<typename T, typename TResult=std::invoke_result_t<T>, typename... TFutures>
-            impulso::async::future<TResult> execute(T&& callable, TFutures&&... dependencies)
+            azul::async::future<TResult> execute(T&& callable, TFutures&&... dependencies)
             {
                 std::unique_lock<std::mutex> lock(mutex_);
 
-                const auto new_task = std::make_shared<detail::task_type<TResult>>(std::function<TResult()>(callable), impulso::async::detail::wrap_dependencies(dependencies...));
+                const auto new_task = std::make_shared<detail::task_type<TResult>>(std::function<TResult()>(callable), azul::async::detail::wrap_dependencies(dependencies...));
                 tasks_.emplace_back(new_task);
 
                 condition_.notify_one();
@@ -61,12 +61,12 @@ namespace impulso
             std::condition_variable condition_;
             mutable std::mutex mutex_;
 
-            std::list<std::shared_ptr<impulso::async::detail::base_task_type>> tasks_;
+            std::list<std::shared_ptr<azul::async::detail::base_task_type>> tasks_;
             std::vector<std::thread> threads_;
 
             bool shutdown_initiated_ = false;
 
-            std::shared_ptr<impulso::async::detail::base_task_type> next_task()
+            std::shared_ptr<azul::async::detail::base_task_type> next_task()
             {
                 auto it = tasks_.begin();
 

@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include <impulso/async/future.hpp>
+#include <azul/async/future.hpp>
 #include <stdexcept>
 #include <thread>
 
@@ -9,22 +9,22 @@ class future_fixture : public testing::Test
 
 TEST_F(future_fixture, get_promiseBroken_throwsFutureError)
 {
-    impulso::async::future<int> future;
+    azul::async::future<int> future;
     {
-        impulso::async::promise<int> promise;
+        azul::async::promise<int> promise;
         future = promise.get_future();
     }
 
-    ASSERT_THROW(future.get(), impulso::async::future_error);
+    ASSERT_THROW(future.get(), azul::async::future_error);
 }
 
 TEST_F(future_fixture, get_resultSet_returns)
 {
     const int expected_result = 42;
 
-    impulso::async::future<int> future;
+    azul::async::future<int> future;
     {
-        impulso::async::promise<int> promise;
+        azul::async::promise<int> promise;
         future = promise.get_future();
         promise.set_value(expected_result);
     }
@@ -34,9 +34,9 @@ TEST_F(future_fixture, get_resultSet_returns)
 
 TEST_F(future_fixture, get_storesException_rethrowsException)
 {
-    impulso::async::future<int> future;
+    azul::async::future<int> future;
     {
-        impulso::async::promise<int> promise;
+        azul::async::promise<int> promise;
         future = promise.get_future();
 
         try
@@ -54,9 +54,9 @@ TEST_F(future_fixture, get_storesException_rethrowsException)
 
 TEST_F(future_fixture, get_storesException_canRethrowMultipleTimes)
 {
-    impulso::async::future<int> future;
+    azul::async::future<int> future;
     {
-        impulso::async::promise<int> promise;
+        azul::async::promise<int> promise;
         future = promise.get_future();
 
         try
@@ -75,7 +75,7 @@ TEST_F(future_fixture, get_storesException_canRethrowMultipleTimes)
 
 TEST_F(future_fixture, get_futureWithVoidTemplateParam_resultTypeIsVoid)
 {
-    impulso::async::promise<void> promise;
+    azul::async::promise<void> promise;
     auto future = promise.get_future();
     promise.set_value();
 
@@ -85,14 +85,14 @@ TEST_F(future_fixture, get_futureWithVoidTemplateParam_resultTypeIsVoid)
 
 TEST_F(future_fixture, isReady_unmodifiedPromise_returnsFalse)
 {
-    impulso::async::promise<int> promise;
+    azul::async::promise<int> promise;
     auto future = promise.get_future();
     ASSERT_FALSE(future.is_ready());
 }
 
 TEST_F(future_fixture, isReady_resultSet_returnsTrue)
 {
-    impulso::async::promise<int> promise;
+    azul::async::promise<int> promise;
     auto future = promise.get_future();
     promise.set_value(42);
     ASSERT_TRUE(future.is_ready());
@@ -100,7 +100,7 @@ TEST_F(future_fixture, isReady_resultSet_returnsTrue)
 
 TEST_F(future_fixture, isReady_storesException_returnsTrue)
 {
-    impulso::async::promise<int> promise;
+    azul::async::promise<int> promise;
     auto future = promise.get_future();
 
     try
@@ -117,9 +117,9 @@ TEST_F(future_fixture, isReady_storesException_returnsTrue)
 
 TEST_F(future_fixture, isReady_promiseBroken_returnsTrue)
 {
-    impulso::async::future<int> future;
+    azul::async::future<int> future;
     {
-        impulso::async::promise<int> promise;
+        azul::async::promise<int> promise;
         future = promise.get_future();
     }
     ASSERT_TRUE(future.is_ready());
@@ -127,8 +127,8 @@ TEST_F(future_fixture, isReady_promiseBroken_returnsTrue)
 
 TEST_F(future_fixture, wait_delayedResult_blocksInitially)
 {
-    impulso::async::promise<int> promise;
-    impulso::async::future<int> future = promise.get_future();
+    azul::async::promise<int> promise;
+    azul::async::future<int> future = promise.get_future();
     bool result_available = false;
 
     std::thread otherThread([future, &result_available](){
@@ -146,8 +146,8 @@ TEST_F(future_fixture, wait_delayedResult_blocksInitially)
 
 TEST_F(future_fixture, waitFor_delayedResult_blocksInitially)
 {
-    impulso::async::promise<int> promise;
-    impulso::async::future<int> future = promise.get_future();
+    azul::async::promise<int> promise;
+    azul::async::future<int> future = promise.get_future();
     bool timeout_occured = false;
 
     std::thread otherThread([future, &timeout_occured](){
@@ -162,8 +162,8 @@ TEST_F(future_fixture, waitFor_delayedResult_blocksInitially)
 
 TEST_F(future_fixture, waitFor_noResult_timesOut)
 {
-    impulso::async::promise<int> promise;
-    impulso::async::future<int> future = promise.get_future();
+    azul::async::promise<int> promise;
+    azul::async::future<int> future = promise.get_future();
     bool timeout_occured = false;
 
     std::thread otherThread([future, &timeout_occured](){
@@ -176,10 +176,10 @@ TEST_F(future_fixture, waitFor_noResult_timesOut)
 
 TEST_F(future_fixture, then_continuationReturningInt_resultAvailable)
 {
-    impulso::async::promise<int> promise;
-    impulso::async::future<int> future = promise.get_future();
+    azul::async::promise<int> promise;
+    azul::async::future<int> future = promise.get_future();
 
-    auto future2 = future.then([](impulso::async::future<int> f){ return f.get(); });
+    auto future2 = future.then([](azul::async::future<int> f){ return f.get(); });
 
     const int expected_value = 42;
 
@@ -190,8 +190,8 @@ TEST_F(future_fixture, then_continuationReturningInt_resultAvailable)
 
 TEST_F(future_fixture, then_continuationReturningVoid_continuationCalled)
 {
-    impulso::async::promise<int> promise;
-    impulso::async::future future = promise.get_future();
+    azul::async::promise<int> promise;
+    azul::async::future future = promise.get_future();
 
     auto future2 = future.then([](auto){ });
     promise.set_value(42);

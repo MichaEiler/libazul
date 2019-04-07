@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <gmock/gmock.h>
 #include <iostream>
-#include <impulso/ipc/sync/condition_variable.hpp>
-#include <impulso/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/sync/condition_variable.hpp>
+#include <azul/ipc/sync/robust_mutex.hpp>
 #include <mutex>
 #include <thread>
 
@@ -17,14 +17,14 @@ int consumer_process_main()
     const auto wait_and_crash = []()
     {
         // mutex under test, this is the mutex we want to lock in the unit test after this process has crashed
-        impulso::ipc::sync::robust_mutex recoverable_mutex("435ba46e", false);
-        std::unique_lock<impulso::ipc::sync::robust_mutex> never_released_lock(recoverable_mutex);
+        azul::ipc::sync::robust_mutex recoverable_mutex("435ba46e", false);
+        std::unique_lock<azul::ipc::sync::robust_mutex> never_released_lock(recoverable_mutex);
 
         // waiting for a notification from the unit test so that we can crash this process
-        impulso::ipc::sync::robust_mutex inform_client_mutex("7f2b191f", false);
-        impulso::ipc::sync::condition_variable inform_client_cond("7f2b191f", false);
+        azul::ipc::sync::robust_mutex inform_client_mutex("7f2b191f", false);
+        azul::ipc::sync::condition_variable inform_client_cond("7f2b191f", false);
 
-        std::unique_lock<impulso::ipc::sync::robust_mutex> lock(inform_client_mutex);
+        std::unique_lock<azul::ipc::sync::robust_mutex> lock(inform_client_mutex);
         inform_client_cond.wait(lock);
 
         // exit without releasing mutexes
@@ -37,7 +37,7 @@ int consumer_process_main()
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // tell unit test that the test utility is running and intialized
-    impulso::ipc::sync::condition_variable inform_server_cond("562dcf7d", false);
+    azul::ipc::sync::condition_variable inform_server_cond("562dcf7d", false);
     inform_server_cond.notify_one();
 
     // just block here and wait for process to crash
@@ -66,18 +66,18 @@ TEST_F(process_fixture, lockMutex_mutexAbandoned_succeeds)
 {
 
     // the mutex which will be abandoned by another process
-    impulso::ipc::sync::robust_mutex recoverable_mutex("435ba46e", true);
+    azul::ipc::sync::robust_mutex recoverable_mutex("435ba46e", true);
 
     // cond-var which we use to tell the process we want to crash it
-    impulso::ipc::sync::robust_mutex inform_client_mutex("7f2b191f", true);
-    impulso::ipc::sync::condition_variable inform_client_cond("7f2b191f", true);
+    azul::ipc::sync::robust_mutex inform_client_mutex("7f2b191f", true);
+    azul::ipc::sync::condition_variable inform_client_cond("7f2b191f", true);
 
     // cond-var on which we wait for the client to tell us that it is ready
-    impulso::ipc::sync::robust_mutex inform_server_mutex("562dcf7d", true);
-    impulso::ipc::sync::condition_variable inform_server_cond("562dcf7d", true);
+    azul::ipc::sync::robust_mutex inform_server_mutex("562dcf7d", true);
+    azul::ipc::sync::condition_variable inform_server_cond("562dcf7d", true);
 
     std::thread wait_for_client_initialization([&]() {
-        std::unique_lock<impulso::ipc::sync::robust_mutex> lock(inform_server_mutex);
+        std::unique_lock<azul::ipc::sync::robust_mutex> lock(inform_server_mutex);
         inform_server_cond.wait(lock);
     });
 
@@ -93,12 +93,12 @@ TEST_F(process_fixture, lockMutex_mutexAbandoned_succeeds)
 
     {
         std::cout << "Attempting to lock abandoned mutex." << std::endl;
-        std::unique_lock<impulso::ipc::sync::robust_mutex> lock(recoverable_mutex);
+        std::unique_lock<azul::ipc::sync::robust_mutex> lock(recoverable_mutex);
     }
 
     {
         std::cout << "Attempting to aquire normal lock on the now non-abandoned mutex." << std::endl;
-        std::unique_lock<impulso::ipc::sync::robust_mutex> lock(recoverable_mutex);
+        std::unique_lock<azul::ipc::sync::robust_mutex> lock(recoverable_mutex);
     }
 }
 #endif

@@ -1,4 +1,4 @@
-#include "impulso/utils/disposer.hpp"
+#include "azul/utils/disposer.hpp"
 #include <gmock/gmock.h>
 
 class disposer_fixture : public testing::Test
@@ -10,7 +10,7 @@ TEST_F(disposer_fixture, destructor_initializedDisposer_calledOnce)
     int count = 0;
 
     {
-        impulso::utils::disposer disposer([&]() { count++; });
+        azul::utils::disposer disposer([&]() { count++; });
     }
 
     const int expectedCount = 1;
@@ -22,10 +22,10 @@ TEST_F(disposer_fixture, moveAssignment_calledOnce)
     int count = 0;
 
     {
-        impulso::utils::disposer disposer2;
+        azul::utils::disposer disposer2;
 
         {
-            impulso::utils::disposer disposer1([&]() { count++; });
+            azul::utils::disposer disposer1([&]() { count++; });
 
             disposer2 = std::move(disposer1);
         }
@@ -44,10 +44,10 @@ TEST_F(disposer_fixture, moveConstruction_calledOnce)
     const int expectedCount = 1;
 
     {
-        impulso::utils::disposer disposer1([&]() { count++; });
+        azul::utils::disposer disposer1([&]() { count++; });
 
         {
-            impulso::utils::disposer disposer2 = std::move(disposer1);
+            azul::utils::disposer disposer2 = std::move(disposer1);
         }
 
         // disposer2 should have increased count

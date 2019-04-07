@@ -1,3 +1,3 @@
-#include <impulso/compute/clcpp/opencl.hpp>
+#include <azul/compute/clcpp/opencl.hpp>
 
-thread_local std::size_t impulso::compute::clcpp::global_index[3];
+thread_local std::size_t azul::compute::clcpp::global_index[3];

@@ -1,8 +1,8 @@
-#include "impulso/ipc/sync/condition_variable.hpp"
+#include "azul/ipc/sync/condition_variable.hpp"
 
 #include <queue.hpp>
-#include <impulso/ipc/sync/robust_mutex.hpp>
-#include <impulso/ipc/shared_memory.hpp>
+#include <azul/ipc/sync/robust_mutex.hpp>
+#include <azul/ipc/shared_memory.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
@@ -17,9 +17,9 @@ namespace
     {
     private:
         std::unordered_map<std::thread::id, HANDLE> semaphores_;
-        ::impulso::ipc::shared_memory thread_queue_memory_;
-        impulso::ipc::detail::queue<std::thread::id> thread_queue_;
-        ::impulso::ipc::sync::robust_mutex thread_queue_mutex_;
+        ::azul::ipc::shared_memory thread_queue_memory_;
+        azul::ipc::detail::queue<std::thread::id> thread_queue_;
+        ::azul::ipc::sync::robust_mutex thread_queue_mutex_;
         std::string const name_;
 
         HANDLE get_semaphore(std::thread::id const& thread_id)
@@ -56,7 +56,7 @@ namespace
 
         void notify_one()
         {
-            std::unique_lock<::impulso::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
 
             auto id = thread_queue_.front();
             thread_queue_.pop();
@@ -66,7 +66,7 @@ namespace
 
         void notify_all()
         {
-            std::unique_lock<::impulso::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
 
             while (thread_queue_.count() > 0)
             {
@@ -77,9 +77,9 @@ namespace
             }
         }
 
-        void wait(std::unique_lock<::impulso::ipc::sync::robust_mutex>& mutex)
+        void wait(std::unique_lock<::azul::ipc::sync::robust_mutex>& mutex)
         {
-            std::unique_lock<::impulso::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
             const auto current_thread_id = std::this_thread::get_id();
             const auto semaphore = get_semaphore(current_thread_id);
 
@@ -100,9 +100,9 @@ namespace
             }
         }
 
-        std::cv_status wait_for(std::unique_lock<::impulso::ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
+        std::cv_status wait_for(std::unique_lock<::azul::ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
         {
-            std::unique_lock<::impulso::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
+            std::unique_lock<::azul::ipc::sync::robust_mutex> lock(thread_queue_mutex_);
             const auto current_thread_id = std::this_thread::get_id();
             const auto semaphore = get_semaphore(current_thread_id);
 
@@ -133,20 +133,20 @@ namespace
 
 // -----------------------------------------------------------------------------------------------------
 
-impulso::ipc::sync::condition_variable::condition_variable(std::string const& name, bool const is_owner)
+azul::ipc::sync::condition_variable::condition_variable(std::string const& name, bool const is_owner)
     : impl_(std::make_unique<::condition_variable>(name, is_owner))
 {
 }
 
-impulso::ipc::sync::condition_variable::condition_variable() : impl_(nullptr)
+azul::ipc::sync::condition_variable::condition_variable() : impl_(nullptr)
 {
 }
 
-impulso::ipc::sync::condition_variable::~condition_variable()
+azul::ipc::sync::condition_variable::~condition_variable()
 {
 }
 
-void impulso::ipc::sync::condition_variable::notify_one()
+void azul::ipc::sync::condition_variable::notify_one()
 {
     if (!impl_)
     {
@@ -157,7 +157,7 @@ void impulso::ipc::sync::condition_variable::notify_one()
     instance->notify_one();
 }
 
-void impulso::ipc::sync::condition_variable::notify_all()
+void azul::ipc::sync::condition_variable::notify_all()
 {
     if (!impl_)
     {
@@ -168,7 +168,7 @@ void impulso::ipc::sync::condition_variable::notify_all()
     instance->notify_all();
 }
 
-void impulso::ipc::sync::condition_variable::wait(std::unique_lock<ipc::sync::robust_mutex>& mutex)
+void azul::ipc::sync::condition_variable::wait(std::unique_lock<ipc::sync::robust_mutex>& mutex)
 {
     if (!impl_)
     {
@@ -179,7 +179,7 @@ void impulso::ipc::sync::condition_variable::wait(std::unique_lock<ipc::sync::ro
     instance->wait(mutex);
 }
 
-std::cv_status impulso::ipc::sync::condition_variable::wait_for(std::unique_lock<ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
+std::cv_status azul::ipc::sync::condition_variable::wait_for(std::unique_lock<ipc::sync::robust_mutex>& mutex, std::chrono::milliseconds const& timeout)
 {
     if (!impl_)
     {

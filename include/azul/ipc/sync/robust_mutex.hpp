@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-namespace impulso
+namespace azul
 {
     namespace ipc
     {

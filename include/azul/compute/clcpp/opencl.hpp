@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace impulso
+namespace azul
 {
     namespace compute
     {

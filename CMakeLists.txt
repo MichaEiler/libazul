@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
 
-project (impulso C CXX)
+project (azul C CXX)
 set (CMAKE_CXX_STANDARD 17)
 
 include(${CMAKE_SOURCE_DIR}/cmake/common.cmake)
-set_impulso_platform_file()
-include(${IMPULSO_PLATFORM_FILE})
+set_azul_platform_file()
+include(${AZUL_PLATFORM_FILE})
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/utils)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/async)

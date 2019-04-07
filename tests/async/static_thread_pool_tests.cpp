@@ -1,5 +1,5 @@
 #include <gmock/gmock.h>
-#include <impulso/async/static_thread_pool.hpp>
+#include <azul/async/static_thread_pool.hpp>
 #include <thread>
 
 class static_thread_pool_fixture : public testing::Test
@@ -8,7 +8,7 @@ class static_thread_pool_fixture : public testing::Test
 
 TEST_F(static_thread_pool_fixture, execute_emptyTask_futureReady)
 {
-    impulso::async::static_thread_pool thread_pool(1);
+    azul::async::static_thread_pool thread_pool(1);
 
     auto result = thread_pool.execute([](){});   
     result.wait();
@@ -19,7 +19,7 @@ TEST_F(static_thread_pool_fixture, execute_emptyTask_futureReady)
 
 TEST_F(static_thread_pool_fixture, execute_taskEnqueued_success)
 {
-    impulso::async::static_thread_pool executor(1);
+    azul::async::static_thread_pool executor(1);
 
     auto result = executor.execute([](){ return 42; });
 
@@ -28,7 +28,7 @@ TEST_F(static_thread_pool_fixture, execute_taskEnqueued_success)
 
 TEST_F(static_thread_pool_fixture, execute_taskThrowsException_exceptionForwarded)
 {
-    impulso::async::static_thread_pool executor(1);
+    azul::async::static_thread_pool executor(1);
 
     auto result = executor.execute([](){ throw std::invalid_argument(""); });
     ASSERT_THROW(result.get(), std::invalid_argument);
@@ -36,9 +36,9 @@ TEST_F(static_thread_pool_fixture, execute_taskThrowsException_exceptionForwarde
 
 TEST_F(static_thread_pool_fixture, execute_multipleTasksAndThreads_success)
 {
-    impulso::async::static_thread_pool executor(4);
+    azul::async::static_thread_pool executor(4);
 
-    std::vector<impulso::async::future<int>> results;
+    std::vector<azul::async::future<int>> results;
 
     const int tasks_to_execute = 100;
 
@@ -56,7 +56,7 @@ TEST_F(static_thread_pool_fixture, execute_multipleTasksAndThreads_success)
 
 TEST_F(static_thread_pool_fixture, execute_oneDependency_executedInOrder)
 {
-    impulso::async::static_thread_pool executor(2);
+    azul::async::static_thread_pool executor(2);
 
     const auto first_task_id = 1;
     const auto second_task_id = 2;
@@ -78,7 +78,7 @@ TEST_F(static_thread_pool_fixture, execute_oneDependency_executedInOrder)
 
 TEST_F(static_thread_pool_fixture, execute_dependencyThrowingException_followingTaskStillExecuted)
 {
-    impulso::async::static_thread_pool executor(2);
+    azul::async::static_thread_pool executor(2);
 
     auto action1 = [&]() { throw std::runtime_error(""); };
     auto action2 = [&]() { };
@@ -99,7 +99,7 @@ TEST_F(static_thread_pool_fixture, execute_multipleDependencies_validExecutionOr
         executed_tasks.push_back(id);
     };
 
-    impulso::async::static_thread_pool executor(2);
+    azul::async::static_thread_pool executor(2);
 
     // dependency graph:
     // task1   <---- task3  <------ task4
@@ -119,7 +119,7 @@ TEST_F(static_thread_pool_fixture, execute_multipleDependencies_validExecutionOr
 TEST_F(static_thread_pool_fixture, execute_multipleTasksNoDependencies_allThreadsOccupied)
 {
     std::vector<std::thread::id> utilized_thread_ids;
-    impulso::async::static_thread_pool executor(4);
+    azul::async::static_thread_pool executor(4);
 
     
     std::mutex mutex_;
@@ -134,7 +134,7 @@ TEST_F(static_thread_pool_fixture, execute_multipleTasksNoDependencies_allThread
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     };
 
-    std::vector<impulso::async::future<void>> futures;
+    std::vector<azul::async::future<void>> futures;
     for (std::size_t i = 0; i < executor.thread_count(); ++i)
     {
         futures.emplace_back(executor.execute(action));
