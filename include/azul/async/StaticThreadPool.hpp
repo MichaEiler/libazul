@@ -48,7 +48,7 @@ namespace azul
             {
                 std::unique_lock<std::mutex> lock(_mutex);
 
-                const auto newTask = std::make_shared<Task<TResult>>(std::function<TResult()>(callable), azul::async::WrapDependencies(dependencies...));
+                const auto newTask = std::make_shared<Task<TResult>>(std::function<TResult()>(callable), azul::async::WhenAll(dependencies...));
                 _tasks.emplace_back(newTask);
 
                 _condition.notify_one();

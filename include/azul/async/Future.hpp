@@ -3,6 +3,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <azul/async/detail/FutureState.hpp>
+#include <azul/utils/Disposer.hpp>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -205,5 +206,51 @@ namespace azul
 
             std::shared_ptr<detail::FutureState<T>> _state;
         };
+
+        template <typename... TFutures>
+        Future<void> WhenAll(TFutures&&... futures)
+        {
+            auto sharedFutureState = std::make_shared<detail::FutureState<void>>();
+            auto future = ::azul::async::Future<void>(sharedFutureState);
+
+            auto sharedPromiseActivator = std::make_shared<azul::utils::Disposer>([sharedFutureState]() {
+                sharedFutureState->SetValue();
+            });
+
+            auto func = [sharedPromiseActivator](auto) mutable {
+                sharedPromiseActivator.reset();
+            };
+
+            (futures.Then(func),...);
+
+            return future;
+        }
+
+        template <typename... TFutures>
+        Future<void> WhenAny(TFutures&&... futures)
+        {
+            auto sharedFutureState = std::make_shared<detail::FutureState<void>>();
+            auto future = ::azul::async::Future<void>(sharedFutureState);
+            auto func = [sharedFutureState](auto) mutable {
+                sharedFutureState->SetValue();
+            };
+
+            (futures.Then(func),...);
+
+            return future;
+        }
+
+        template <typename F1, typename F2>
+        static Future<void> operator&&(F1&& future1, F2&& future2)
+        {
+            return WhenAll(future1, future2);
+        }
+
+        template <typename F1, typename F2>
+        static Future<void> operator||(F1&& future1, F2&& future2)
+        {
+            return WhenAny(future1, future2);
+        }
+
     }
 }

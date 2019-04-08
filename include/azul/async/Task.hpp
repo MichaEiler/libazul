@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <azul/async/Future.hpp>
-#include <azul/utils/Disposer.hpp>
 #include <memory>
 #include <stdexcept>
 
@@ -112,24 +111,5 @@ namespace azul
             azul::async::Promise<void> _promise;
             std::shared_ptr<std::function<void()>> _func;
         };
-
-        template <typename... TFutures>
-        Future<void> WrapDependencies(TFutures&&... futures)
-        {
-            auto sharedFutureState = std::make_shared<detail::FutureState<void>>();
-            auto future = ::azul::async::Future<void>(sharedFutureState);
-
-            auto sharedPromiseActivator = std::make_shared<azul::utils::Disposer>([sharedFutureState]() {
-                sharedFutureState->SetValue();
-            });
-
-            auto func = [sharedPromiseActivator](auto) mutable {
-                sharedPromiseActivator.reset();
-            };
-
-            (futures.Then(func),...);
-
-            return future;
-        }
     }
 }

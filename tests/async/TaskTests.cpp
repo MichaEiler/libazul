@@ -17,7 +17,7 @@ TEST_F(TaskTestFixture, WrapDependencies_TwoInputFutures_ResultSet)
     azul::async::Promise<bool> promise2;
     auto future2 = promise2.GetFuture();
 
-    auto finalFuture = azul::async::WrapDependencies(future, future2);
+    auto finalFuture = azul::async::WhenAll(future, future2);
 
     ASSERT_FALSE(future.IsReady());
     ASSERT_FALSE(future2.IsReady());
@@ -38,7 +38,7 @@ TEST_F(TaskTestFixture, WrapDependencies_TwoInputFutures_ResultSet)
 
 TEST_F(TaskTestFixture, WrapDependencies_ZeroInputFutures_ResultImmediatelySet)
 {
-    auto future = azul::async::WrapDependencies();
+    auto future = azul::async::WhenAll();
     ASSERT_TRUE(future.IsReady());
 }
 
@@ -134,4 +134,135 @@ TEST_F(TaskTestFixture, IsReady_DependencyReady_ReturnsTrue)
     promise.SetValue();
     auto task = azul::async::Task<void>([](){}, future);
     ASSERT_TRUE(task.IsReady());
+}
+
+TEST_F(TaskTestFixture, SetValue_CalledTwice_ThrowsFutureError)
+{
+    azul::async::Promise<int> promise;
+    promise.SetValue(42);
+    ASSERT_THROW(promise.SetValue(42), azul::async::FutureError);
+}
+
+TEST_F(TaskTestFixture, SetValue_CalledTwiceOnVoidFuture_ContinuationOnlyCalledOnce)
+{
+    int executionCount = 0;
+    auto continuation = [&](auto) { executionCount++; };
+
+    azul::async::Promise<void> promise;
+    auto future = promise.GetFuture();
+    future.Then(continuation);
+
+    promise.SetValue();
+    promise.SetValue();
+
+    ASSERT_EQ(1, executionCount);
+}
+
+TEST_F(TaskTestFixture, SetValue_CalledTwiceOnVoidFuture_NoExceptionThrown)
+{
+    azul::async::Promise<void> promise;
+    promise.SetValue();
+    ASSERT_NO_THROW(promise.SetValue());
+}
+
+TEST_F(TaskTestFixture, OrOperator_FirstArgumentReady_ResultReady)
+{
+    azul::async::Promise<void> promiseA;
+    azul::async::Promise<void> promiseB;
+    auto futureA = promiseA.GetFuture();
+    auto futureB = promiseB.GetFuture();
+
+    ASSERT_FALSE(futureA.IsReady());
+    ASSERT_FALSE(futureB.IsReady());
+
+    using namespace azul::async;
+    auto resultFuture = futureA || futureB;
+    ASSERT_FALSE(resultFuture.IsReady());
+
+    promiseA.SetValue();
+    ASSERT_TRUE(resultFuture.IsReady());
+}
+
+TEST_F(TaskTestFixture, OrOperator_SecondArgumentReady_ResultReady)
+{
+    azul::async::Promise<void> promiseA;
+    azul::async::Promise<void> promiseB;
+    auto futureA = promiseA.GetFuture();
+    auto futureB = promiseB.GetFuture();
+
+    ASSERT_FALSE(futureA.IsReady());
+    ASSERT_FALSE(futureB.IsReady());
+
+    using namespace azul::async;
+    auto resultFuture = futureA || futureB;
+    ASSERT_FALSE(resultFuture.IsReady());
+
+    promiseB.SetValue();
+    ASSERT_TRUE(resultFuture.IsReady());
+}
+
+TEST_F(TaskTestFixture, AndOperator_BothArgumentsSetToReady_ResultReady)
+{
+    azul::async::Promise<void> promiseA;
+    azul::async::Promise<void> promiseB;
+    auto futureA = promiseA.GetFuture();
+    auto futureB = promiseB.GetFuture();
+
+    ASSERT_FALSE(futureA.IsReady());
+    ASSERT_FALSE(futureB.IsReady());
+
+    using namespace azul::async;
+    auto resultFuture = futureA && futureB;
+    ASSERT_FALSE(resultFuture.IsReady());
+
+    promiseA.SetValue();
+    ASSERT_FALSE(resultFuture.IsReady());
+    promiseB.SetValue();
+    ASSERT_TRUE(resultFuture.IsReady());
+}
+
+TEST_F(TaskTestFixture, Operators_BooleanExpression1_ResultCorrect)
+{
+    azul::async::Promise<void> promiseA;
+    azul::async::Promise<void> promiseB;
+    azul::async::Promise<void> promiseC;
+    auto futureA = promiseA.GetFuture();
+    auto futureB = promiseB.GetFuture();
+    auto futureC = promiseC.GetFuture();
+
+    ASSERT_FALSE(futureA.IsReady());
+    ASSERT_FALSE(futureB.IsReady());
+    ASSERT_FALSE(futureC.IsReady());
+
+    using namespace azul::async;
+    auto resultFuture = (futureA && futureB) || futureC;
+
+    ASSERT_FALSE(resultFuture.IsReady());
+
+    promiseA.SetValue();
+    ASSERT_FALSE(resultFuture.IsReady());
+    promiseB.SetValue();
+    ASSERT_TRUE(resultFuture.IsReady());
+}
+
+TEST_F(TaskTestFixture, Operators_BooleanExpression2_ResultCorrect)
+{
+    azul::async::Promise<void> promiseA;
+    azul::async::Promise<void> promiseB;
+    azul::async::Promise<void> promiseC;
+    auto futureA = promiseA.GetFuture();
+    auto futureB = promiseB.GetFuture();
+    auto futureC = promiseC.GetFuture();
+
+    ASSERT_FALSE(futureA.IsReady());
+    ASSERT_FALSE(futureB.IsReady());
+    ASSERT_FALSE(futureC.IsReady());
+
+    using namespace azul::async;
+    auto resultFuture = (futureA && futureB) || futureC;
+    
+    ASSERT_FALSE(resultFuture.IsReady());
+
+    promiseC.SetValue();
+    ASSERT_TRUE(resultFuture.IsReady());
 }

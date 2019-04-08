@@ -12,6 +12,7 @@ namespace azul
         enum class FutureErrorCode : std::uint32_t
         {
             BrokenPromise = 0,
+            FutureAlreadySet = 1
         };
 
         class FutureError : public std::exception
@@ -80,6 +81,11 @@ namespace azul
                 {
                     {
                         std::lock_guard<std::mutex> lock(_mutex);
+                        if (_state != State::Undefined)
+                        {
+                            throw FutureError(FutureErrorCode::FutureAlreadySet);
+                        }
+
                         _value = value;
                         _state = State::Ready;
                         _condition.notify_all();
@@ -131,11 +137,6 @@ namespace azul
                 {
                     {
                         std::unique_lock<std::mutex> lock(_mutex);
-                        if (_state == State::BrokenPromise)
-                        {
-                            return;
-                        }
-
                         if (_state == State::Undefined)
                         {
                             _continuations.emplace_back(continuation);
@@ -154,12 +155,19 @@ namespace azul
 
                 void AboutToDestroyPromise()
                 {
-                    std::lock_guard<std::mutex> lock(_mutex);
-                    if (_state == State::Undefined)
                     {
-                        _state = State::BrokenPromise;
+                        std::lock_guard<std::mutex> lock(_mutex);
+                        if (_state == State::Undefined)
+                        {
+                            _state = State::BrokenPromise;
+                        }
+                        _condition.notify_all();
                     }
-                    _condition.notify_all();
+
+                    for (const auto& continuation : _continuations)
+                    {
+                        continuation();
+                    }
                 }
 
             private:
@@ -226,6 +234,11 @@ namespace azul
                 {
                     {
                         std::lock_guard<std::mutex> lock(_mutex);
+                        if (_state != State::Undefined)
+                        {
+                            return;
+                        }
+                        
                         _state = State::Ready;
                         _condition.notify_all();
                     }
@@ -276,11 +289,6 @@ namespace azul
                 {
                     {
                         std::unique_lock<std::mutex> lock(_mutex);
-                        if (_state == State::BrokenPromise)
-                        {
-                            return;
-                        }
-
                         if (_state == State::Undefined)
                         {
                             _continuations.emplace_back(continuation);
@@ -299,12 +307,19 @@ namespace azul
 
                 void AboutToDestroyPromise()
                 {
-                    std::lock_guard<std::mutex> lock(_mutex);
-                    if (_state == State::Undefined)
                     {
-                        _state = State::BrokenPromise;
+                        std::lock_guard<std::mutex> lock(_mutex);
+                        if (_state == State::Undefined)
+                        {
+                            _state = State::BrokenPromise;
+                        }
+                        _condition.notify_all();
                     }
-                    _condition.notify_all();
+
+                    for (const auto& continuation : _continuations)
+                    {
+                        continuation();
+                    }
                 }
 
             private:
