@@ -82,31 +82,37 @@ namespace azul
 
                 using TResult = std::invoke_result_t<F, Future<T>>;
 
-                auto stateOfResultFuture = std::shared_ptr<detail::FutureState<TResult>>(new detail::FutureState<TResult>(), [](auto* state){
-                    state->AboutToDestroyPromise();
-                    delete state;
+                auto futureState = std::make_shared<detail::FutureState<TResult>>();
+
+                // promise declared further down in this file therefore we cannot yet use it here
+                // this is why  we just create a state with the same behaviour
+                // as the promise would have (the promise calls AboutToDestroyPromise in its destructor)
+                auto futureStateAsPromise = std::shared_ptr<detail::FutureState<TResult>>(futureState.get(), [futureState](auto*){
+                    futureState->AboutToDestroyPromise();
                 });
 
-                auto resultFuture = azul::async::Future<TResult>(stateOfResultFuture);
+                auto resultFuture = azul::async::Future<TResult>(futureState);
 
-                auto continuation = [callable = std::function<TResult(azul::async::Future<T>)>(callable), stateOfResultFuture, copyOfThis = azul::async::Future<T>(*this)]()
+                // when calling AboutToDestoryPromise on the future state instance on which Then was called, this would clean all cotinuations
+                // and by doing so also destroying all "promises" and therefore setting the shared context of the future we return in Then to PromiseBroken
+                auto continuation = [callable = std::function<TResult(azul::async::Future<T>)>(callable), promise=std::move(futureStateAsPromise), copyOfThis = azul::async::Future<T>(*this)]()
                 {
                     try
                     {
                         if constexpr (std::is_void_v<TResult>)
                         {
                             callable(copyOfThis);
-                            stateOfResultFuture->SetValue();
+                            promise->SetValue();
                         }
                         else
                         {
                             auto result = callable(copyOfThis);
-                            stateOfResultFuture->SetValue(result);
+                            promise->SetValue(result);
                         }
                     }
                     catch(...)
                     {
-                        stateOfResultFuture->SetException(std::current_exception());
+                        promise->SetException(std::current_exception());
                     }
                 };
 

@@ -164,10 +164,7 @@ namespace azul
                         _condition.notify_all();
                     }
 
-                    for (const auto& continuation : _continuations)
-                    {
-                        continuation();
-                    }
+                    _continuations.clear();
                 }
 
             private:
@@ -316,10 +313,7 @@ namespace azul
                         _condition.notify_all();
                     }
 
-                    for (const auto& continuation : _continuations)
-                    {
-                        continuation();
-                    }
+                    _continuations.clear();
                 }
 
             private:

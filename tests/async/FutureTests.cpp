@@ -198,3 +198,18 @@ TEST_F(FutureTestFixture, Then_ContinuationReturningVoid_ContinuationCalled)
     ASSERT_NO_THROW(future2.Wait());
     ASSERT_NO_THROW(future2.Get());
 }
+
+TEST_F(FutureTestFixture, Then_OriginalPromiseDestroyedEarly_ResultFutureThrowsFutureError)
+{
+    azul::async::Future<void> future;
+    azul::async::Future<void> future2;
+    {
+        azul::async::Promise<void> promise;
+        future = promise.GetFuture();
+        future2 = future.Then([](auto){});
+    }
+    
+
+    ASSERT_THROW(future2.Get(), azul::async::FutureError);
+}
+
