@@ -77,7 +77,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    build_dependencies = [ GitRepository("https://github.com/google/googletest.git", "googletest", "master")]
+    build_dependencies = [ GitRepository("https://github.com/google/googletest.git", "googletest", "release-1.10.0")]
 
     if args.mobile == True:
         build_dependencies.append(AndroidNdk("r19c"))
