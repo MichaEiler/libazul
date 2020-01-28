@@ -162,7 +162,7 @@ TEST_F(QueueTestFixture, Remove_ItemExistsTwice_FirstIsRemoved)
     _queue.Remove(3);
 
     ASSERT_TRUE(_queue.Contains(3));
-    ASSERT_EQ(3, _queue.Count());
+    ASSERT_EQ(3u, _queue.Count());
 }
 
 TEST_F(QueueTestFixture, Remove_ItemDoesNotExist_NoChange)
