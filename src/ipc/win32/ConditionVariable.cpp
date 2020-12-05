@@ -58,10 +58,13 @@ namespace
         {
             std::unique_lock<::azul::ipc::sync::RobustMutex> lock(_threadQueueMutex);
 
-            auto id = _threadQueue.Front();
-            _threadQueue.Pop();
+	    if (_threadQueue.Count() > 0)
+	    {
+                auto id = _threadQueue.Front();
+                _threadQueue.Pop();
 
-            ReleaseSemaphore(GetSemaphore(id), 1, nullptr);
+                ReleaseSemaphore(GetSemaphore(id), 1, nullptr);
+	    }
         }
 
         void NotifyAll()
