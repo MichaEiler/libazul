@@ -97,6 +97,14 @@ TEST_F(ConditionVariableTestFixture, Signal_TwoWaitingThreadsWithTimeouts_OneThr
     ASSERT_EQ(1, timeouts_occured);
 }
 
+TEST_F(ConditionVariableTestFixture, SignalOne_NoThreadWaiting_NoExceptionThrown)
+{
+    auto mutex = azul::ipc::sync::RobustMutex("76bda222", true);
+    auto cond = azul::ipc::sync::ConditionVariable("57a43322", true);
+
+    ASSERT_NO_THROW(cond.NotifyOne());
+}
+
 TEST_F(ConditionVariableTestFixture, Broadcast_TwoWaitingThreadsWithTimeouts_BothThreadsNotified)
 {
     auto mutex = azul::ipc::sync::RobustMutex("76bda1f5", true);
