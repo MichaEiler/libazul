@@ -1,5 +1,6 @@
 #pragma once
 
+#include <azul/ipc/export.hpp>
 #include <memory>
 #include <string>
 
@@ -11,7 +12,7 @@ namespace azul
         {
             class ConditionVariable;
 
-            class RobustMutex final
+            class AZUL_IPC_EXPORT RobustMutex final
             {
             public:
                 explicit RobustMutex(std::string const& name, bool const isOwner);

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <azul/compute/export.hpp>
 #include <cmath>
 #include <condition_variable>
 #include <cstdint>
@@ -20,7 +21,7 @@ namespace azul
     {
         namespace clcpp
         {
-            class OpenClComputeExecutor
+            class AZUL_COMPUTE_EXPORT OpenClComputeExecutor
             {
             public:
                 explicit OpenClComputeExecutor(std::shared_ptr<async::StaticThreadPool> const& executor)

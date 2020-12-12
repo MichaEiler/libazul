@@ -23,6 +23,8 @@ target_include_directories (azul_ipc PUBLIC "${CMAKE_SOURCE_DIR}/include/")
 target_include_directories (azul_ipc PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/")
 target_link_libraries(azul_ipc azul_utils ${PLATFORM_DEPENDENCIES})
 
+libazul_generate_export_header(ipc)
+
 install(TARGETS azul_ipc DESTINATION lib/)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../include/azul/ipc DESTINATION include/azul/)
 

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <azul/ipc/export.hpp>
 #include <azul/ipc/sync/RobustMutex.hpp>
 #include <memory>
 #include <mutex>
@@ -13,7 +14,7 @@ namespace azul
     {
         namespace sync
         {
-            class ConditionVariable final
+            class AZUL_IPC_EXPORT ConditionVariable final
             {
             public:
                 explicit ConditionVariable(std::string const& name, bool const isOwner);
