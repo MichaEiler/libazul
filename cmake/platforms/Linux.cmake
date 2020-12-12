@@ -1,5 +1,3 @@
-set(SUPPORTS_IPC TRUE)
-
 function (set_global_compiler_options)
     set (options "-Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -Wpedantic -Wformat=2 -Werror")
 
@@ -13,4 +11,3 @@ function (set_global_compiler_options)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${options}" PARENT_SCOPE)
 endfunction()
 
-set_global_compiler_options()

@@ -32,30 +32,11 @@ A library providing components for async programming. Currently contains a futur
 
 ...
 
-# FAQ
+## Downloading Dependencies
 
-* *What about the Raspberry PI?* Even so the RPI is a widely used platform, supporting it is tough. The official cross compiler is still stuck at gcc 4.9, meaning C++11. To build this project a newer toolchain would be required. That said a modern enough compiler should be all that's needed to compile this code for the raspberry PI.
-
-## Installing Build Tools & Downloading Dependencies
-
-#### Linux
-   
-    python3 3rdparty/download.py          # Download 3rd-party libraries (googletest, ios-cmake, android-ndk)
-    python3 3rdparty/download.py -m       # (alternative) -m tells the script to download the android ndk
-    sudo dnf install cmake gcc-c++        # Installing compiler, cmake and assembler
-
-#### OSX
-
-    python3 3rdparty/download.py -m       # The -m argument is optional, it downloads some ios cmake files.
-    brew install gcc
-    brew upgrade cmake
-
-    # optional, in case you get an error message about the command line tools being selected
-    sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
-#### Windows
-
-    python 3rdparty/download.py
+    # this will clone the submodules pointing to google/googletest and leetal/ios-cmake
+    git submodule init
+    git submodule update
 
 ## Compilation
 
@@ -67,11 +48,18 @@ A library providing components for async programming. Currently contains a futur
 
 #### Android (on Linux)
 
+    export ANDROID_NDK_HOME=/your/ndk/path/
     mkdir build_android && cd build_android
-    cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF .. -DANDROID_NDK=`pwd`/../3rdparty/android-ndk-r19c/ -DCMAKE_TOOLCHAIN_FILE=`pwd`/../3rdparty/android-ndk-r19c/build/cmake/android.toolchain.cmake -DANDROID_TOOLCHAIN=clang -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=24
+    cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF .. -DANDROID_NDK=$ANDROID_NDK_HOME -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake -DANDROID_TOOLCHAIN=clang -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=28
     make -j8
 
 #### OSX
+
+    brew install gcc
+    brew upgrade cmake
+
+    # optional, in case you get an error message about the command line tools
+    sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
     mkdir build && cd build
     cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF ..
@@ -80,13 +68,13 @@ A library providing components for async programming. Currently contains a futur
 #### iOS (on OSX)
 
     mkdir build_ios && cd build_ios
-    cmake -GXcode -DBUILD_SHARED_LIBS=OFF .. -DCMAKE_TOOLCHAIN_FILE=`pwd`/../3rdparty/ios-cmake/ios.toolchain.cmake -DPLATFORM=OS64 -DENABLE_VISIBILITY=1 -DDISABLE_TESTS=ON
+    cmake -GXcode -DBUILD_SHARED_LIBS=OFF .. -DCMAKE_TOOLCHAIN_FILE=`pwd`/../3rdparty/ios-cmake/ios.toolchain.cmake -DPLATFORM=OS64 -DENABLE_VISIBILITY=1
     xcodebuild -project azul.xcodeproj build -configuration Release
 
 #### Windows
 
     mkdir build && cd build
-    cmake -G"Visual Studio 16 2019" -Ax64 -DBUILD_SHARED_LIBS=OFF ..
+    cmake -G"Visual Studio 16 2019" -Ax64 -Thost=x64 -DBUILD_SHARED_LIBS=OFF ..
     cmake --build . --config Release --target ALL_BUILD
 
 

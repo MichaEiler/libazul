@@ -1,5 +1,3 @@
-if (SUPPORTS_IPC)
-
 if (CMAKE_SYSTEM_NAME MATCHES Linux)
     set(PLATFORM_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/linux/*.cpp"
                       "${CMAKE_CURRENT_SOURCE_DIR}/linux/*.hpp")
@@ -25,4 +23,6 @@ target_include_directories (azul_ipc PUBLIC "${CMAKE_SOURCE_DIR}/include/")
 target_include_directories (azul_ipc PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/")
 target_link_libraries(azul_ipc azul_utils ${PLATFORM_DEPENDENCIES})
 
-endif()
+install(TARGETS azul_ipc DESTINATION lib/)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../../include/azul/ipc DESTINATION include/azul/)
+
