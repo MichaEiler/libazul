@@ -1,5 +1,6 @@
 #pragma once
 
+#include <azul/compute/export.hpp>
 #include <type_traits>
 #include <tuple>
 
@@ -10,7 +11,7 @@ namespace azul
         namespace clcpp
         {
             template<typename TValue, typename std::enable_if<std::is_floating_point<TValue>::value || std::is_integral<TValue>::value>::type* = nullptr>
-            struct Vec2
+            struct AZUL_COMPUTE_EXPORT Vec2
             {
                 TValue x, y;
 
@@ -88,7 +89,7 @@ namespace azul
             };
 
             template<typename TValue, typename std::enable_if<std::is_floating_point<TValue>::value || std::is_integral<TValue>::value>::type* = nullptr>
-            struct Vec4
+            struct AZUL_COMPUTE_EXPORT Vec4
             {
                 TValue x, y, z, w;
 

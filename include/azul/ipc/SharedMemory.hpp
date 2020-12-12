@@ -1,5 +1,6 @@
 #pragma once
 
+#include <azul/ipc/export.hpp>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -8,7 +9,7 @@ namespace azul
 {
     namespace ipc
     {
-        class SharedMemory final
+        class AZUL_IPC_EXPORT SharedMemory final
         {
         public:
             explicit SharedMemory(std::string const& name, std::uint64_t const size, bool const is_owner);
