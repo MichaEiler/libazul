@@ -1,6 +1,3 @@
-3rdparty/googletest
-3rdparty/ios-cmake
-3rdparty/android*
 build/
 build_android/
 build_ios/
