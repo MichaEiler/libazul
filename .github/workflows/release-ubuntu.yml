@@ -1,0 +1,49 @@
+name: CI
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Install dependencies
+        run: |
+          sudo apt install libboost-dev libgtest-dev cmake gcc g++
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: cmake ${{github.workspace}} -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DLIBAZUL_WITH_IPC=ON -DLIBAZUL_WITH_TESTS=ON
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: make -j4
+
+      - name: Run Unit Tests
+        working-directory: ${{github.workspace}}/build
+        run: |
+          GTEST_OUTPUT=xml:test-results/ ./tests/compute/tests_azul_compute
+          GTEST_OUTPUT=xml:test-results/ ./tests/async/tests_azul_async
+          GTEST_OUTPUT=xml:test-results/ ./tests/ipc/tests_azul_ipc
+          GTEST_OUTPUT=xml:test-results/ ./tests/utils/tests_azul_utils
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: test_results_xml
+          path: ${{runner.workspace}}/build/test-results/**/*.xml
+
+            
